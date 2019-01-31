@@ -1,0 +1,13 @@
+//
+// Created by rob-ot on 31.1.19.
+//
+
+#ifndef REALCOLLABORATIONCAL_PCLVISUALISER_H
+#define REALCOLLABORATIONCAL_PCLVISUALISER_H
+
+class PCLvisualiser {
+
+};
+
+
+#endif //REALCOLLABORATIONCAL_PCLVISUALISER_H

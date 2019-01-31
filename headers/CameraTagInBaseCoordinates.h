@@ -1,0 +1,18 @@
+//
+// Created by rob-ot on 29.1.19.
+//
+
+#ifndef REALCOLLABORATIONCAL_CAMERATAGINBASECOORDINATES_H
+#define REALCOLLABORATIONCAL_CAMERATAGINBASECOORDINATES_H
+
+
+using namespace std;
+
+
+class CameraTagInBaseCoordinates {
+public:
+
+};
+
+
+#endif //REALCOLLABORATIONCAL_CAMERATAGINBASECOORDINATES_H
