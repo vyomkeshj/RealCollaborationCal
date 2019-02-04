@@ -1,3 +1,4 @@
+#pragma once
 //
 // Created by rob-ot on 18.1.19.
 //
@@ -79,6 +80,9 @@ private:
     rs2_stream align_to;
     rs2::align *align = nullptr;
     rs2::frameset frameset;
+
+    int selectedCamera = 0;
+    int numberOfAvailableCameras = 0;
 
     float depth_scale;
     float depthFilter = 0.0f;

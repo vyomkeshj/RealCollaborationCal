@@ -23,6 +23,7 @@ int main() {
         CameraTCPOrientation::TCP currentTCP = orientation.getTCPOrientation();
         cout<<"x= "<<currentTCP.x<<" y=" <<currentTCP.y<<" z= "<<currentTCP.z<<endl;
         totalTransformation(currentTCP, rvec, tvec);
+        delete(&currentTCP);
     }
 
     return 0;
@@ -40,7 +41,7 @@ void totalTransformation(CameraTCPOrientation::TCP currentTCP, Vec3d rvec, Vec3d
     finalTVec[1] = currentTCP.y/10000 + tvec[1];
     finalTVec[2] = currentTCP.z/10000 + tvec[2];
     cout<<endl<<"RVEC: ";
-    printMatrix(rvec);
+    printMatrix(frameRotationBase);
     cout<<"TVEC: ";
     printMatrix(finalTVec);
 }

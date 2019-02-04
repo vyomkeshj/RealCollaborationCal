@@ -32,13 +32,22 @@ if( PCL_FOUND )
 
     # Additional Library Directories
     link_directories( ${PCL_LIBRARY_DIRS} )
-    LIST(REMOVE_ITEM PCL_LIBRARIES _octreepcl_ )
     message(${PCL_LIBRARIES})
 
 
     # Additional Dependencies
-    target_link_libraries( RealCollaborationCal pcl commonpcl kdtreepcl octreepcl searchpcl
-            sample consensuspcl filterspcl iopcl featurespcl mlpclsegmentationpcl visualizationpcl surfacepcl registrationpcl keypointspcl trackingpcl recognitionpcl stereopcl outofcorepcl people /usr/lib/x86_64-linux-gnu/libboost_system.so /usr/lib/x86_64-linux-gnu/libboost_filesystem.so /usr/lib/x86_64-linux-gnu/libboost_thread.so-lpthread /usr/lib/x86_64-linux-gnu/libboost_date_time.so /usr/lib/x86_64-linux-gnu/libboost_iostreams.so /usr/lib/x86_64-linux-gnu/libboost_serialization.so /usr/lib/x86_64-linux-gnu/libboost_chrono.so /usr/lib/x86_64-linux-gnu/libboost_atomic.so
+    target_link_libraries( RealCollaborationCal  pcl_kdtree pcl_octree pcl_search
+            pcl_sample_consensus pcl_filters pcl_io pcl_features pcl_ml pcl_segmentation
+            pcl_visualization pcl_surface pcl_registration pcl_keypoints pcl_tracking
+            pcl_recognition pcl_stereo pcl_outofcore pcl_people
+            /usr/lib/x86_64-linux-gnu/libboost_system.so
+            /usr/lib/x86_64-linux-gnu/libboost_filesystem.so
+            /usr/lib/x86_64-linux-gnu/libboost_thread.so -lpthread
+            /usr/lib/x86_64-linux-gnu/libboost_date_time.so
+            /usr/lib/x86_64-linux-gnu/libboost_iostreams.so
+            /usr/lib/x86_64-linux-gnu/libboost_serialization.so
+            /usr/lib/x86_64-linux-gnu/libboost_chrono.so
+            /usr/lib/x86_64-linux-gnu/libboost_atomic.so
             /usr/lib/x86_64-linux-gnu/libboost_regex.so flannflann_cpp VTK::WrappingTools VTK::ViewsInfovis VTK::CommonCore
             VTK::CommonDataModel VTK::CommonExecutionModel VTK::InteractionStyle VTK::RenderingContext2D
             VTK::ViewsCore VTK::ChartsCore VTK::CommonColor VTK::CommonTransforms VTK::FiltersCore
