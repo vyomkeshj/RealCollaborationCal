@@ -39,7 +39,7 @@ public:
         return depth_scale;
     }
 
-    tuple<Mat, depth_frame> getCVAlignedMatrix() {
+    tuple<Mat, depth_frame, video_frame> getCVAlignedMatrix() {
     bool received_frames = false;
     while(!received_frames) {
         if (profile_changed(pipe.get_active_profile().get_streams(), profile.get_streams())) {
@@ -65,14 +65,11 @@ public:
             remove_background(other_frame, aligned_depth_frame, depth_scale, depthFilter);
             // Creating OpenCV matrix from IR image
             Mat ir(Size(640, 480), CV_8UC1, (void *) other_frame.get_data(), Mat::AUTO_STEP);
-            return make_tuple(ir, aligned_depth_frame);
+            return make_tuple(ir, aligned_depth_frame, other_frame);
         }
     }
     }
 
-    depth_frame getAlignedDepthFrame() {
-
-    };
 private:
     pipeline pipe;
     config cfg;

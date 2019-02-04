@@ -31,7 +31,7 @@ public:
      * */
     /*tuple<bool, Point3f, Point3f>*/void getEstimatedPose() {
         while(true) {
-            auto[image, depth_information] = this->realsenseManager.getCVAlignedMatrix();
+            auto[image, depth_information, video_framed] = this->realsenseManager.getCVAlignedMatrix();
 
             double tick = (double) getTickCount();
 

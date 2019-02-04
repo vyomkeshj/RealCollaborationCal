@@ -1,5 +1,6 @@
 #include <CameraTCPOrientation.h>
 #include <RealsensePoseEstimation.h>
+#include <Eigen/Geometry>
 
 using namespace std;
 using namespace cv;
@@ -30,20 +31,17 @@ int main() {
 }
 
 void totalTransformation(CameraTCPOrientation::TCP currentTCP, Vec3d rvec, Vec3d tvec) {
-    Vec3d finalRVec, finalTVec;
     Mat frameRotationCam, frameRotationBase, netRotation;
     cv::Rodrigues(rvec, frameRotationCam);
     rvec = cv::Vec3d(currentTCP.rx/1000,  currentTCP.ry/1000, currentTCP.rz/1000);
     cv::Rodrigues(rvec, frameRotationBase);
 
+    cout<<"Rotation base = "<<frameRotationBase <<" rotationCam=  "<<frameRotationCam<<endl;
+    cout<<"Translation base= "<<currentTCP.x<<","<<currentTCP.y<<","<<currentTCP.z<<"  translation cam = ";
+    printMatrix(tvec);
 
-    finalTVec[0] = currentTCP.x/10000 + tvec[0];
-    finalTVec[1] = currentTCP.y/10000 + tvec[1];
-    finalTVec[2] = currentTCP.z/10000 + tvec[2];
-    cout<<endl<<"RVEC: ";
-    printMatrix(frameRotationBase);
-    cout<<"TVEC: ";
-    printMatrix(finalTVec);
+
+
 }
 
 void printMatrix(Vec3d buf)

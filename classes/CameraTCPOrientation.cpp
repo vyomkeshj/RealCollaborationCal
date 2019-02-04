@@ -4,6 +4,7 @@
 
 #include "CameraTCPOrientation.h"
 
+
 CameraTCPOrientation::CameraTCPOrientation(string cobotIpAddr):
         bus(cobotIpAddr, 502) {
     this->cobotIpAddr = cobotIpAddr;
