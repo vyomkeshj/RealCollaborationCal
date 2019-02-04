@@ -143,11 +143,7 @@ int main() {
 
     // Actual calling of conversion and saving XYZRGB cloud to file
     ptr_cloud cloud = points_to_pcl(points, colored_frame);
-    pcl::visualization::CloudViewer viewer ("Simple Cloud Viewer");
-    viewer.runOnVisualizationThreadOnce (viewerOneOff);
-
-    //This will get called once per visualization iteration
-    viewer.runOnVisualizationThread (viewerPsycho);
+    pcl::visualization::CloudViewer viewer ("");
     while (!viewer.wasStopped ())
     {
         //you can also do cool processing here
