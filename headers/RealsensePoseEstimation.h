@@ -51,11 +51,15 @@ public:
         }
     }
 
+    RealsenseManager getDeviceManager() {
+        return realsenseManager;
+    }
+
     tuple<Vec3d, Vec3d> visualizeDetectedAxesAndReturnTransformation() {
         Vec3d rvec, tvec;
         while(true) {
             Mat imageCopy;
-            auto[image, depth_information] = this->realsenseManager.getCVAlignedMatrix();
+            auto[image, depth_information, video_frame] = this->realsenseManager.getCVAlignedMatrix();
 
             double tick = (double)getTickCount();
 

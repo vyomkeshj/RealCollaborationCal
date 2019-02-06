@@ -2,6 +2,9 @@
 //
 // Created by rob-ot on 18.1.19.
 //
+#define DEVICE_CALIB_CAM 0
+#define DEVICE_REGULAR_CAM 1
+
 #include <librealsense2/rs.hpp>
 #include <opencv2/opencv.hpp>
 

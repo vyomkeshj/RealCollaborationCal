@@ -11,6 +11,7 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 #include <pcl/visualization/cloud_viewer.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -18,9 +19,21 @@
 #include <string>
 #include <RealsenseManager.h>
 
-typedef pcl::PointXYZRGB P_pcl;
-typedef pcl::PointCloud<P_pcl> point_cloud;
-typedef point_cloud::Ptr ptr_cloud;
+#include <CameraTCPOrientation.h>
+#include <RealsensePoseEstimation.h>
+#include <Eigen/Geometry>
+#include <pcl/common/transforms.h>
+
+
+void remove_background(rs2::video_frame& color, const rs2::depth_frame& depth_frame, float depth_scale, float clipping_dist);
+float get_depth_scale(rs2::device dev);
+rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams);
+bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
+void totalTransformation(CameraTCPOrientation::TCP currentTCP, Vec3d rvec, Vec3d tvec);
+void printMatrix(Vec3d buf);
+Eigen::Matrix4f createAffineFromRotationAndTranslation(Vec3f rotation, Vec3f translation);
+
+
 int user_data;
 using namespace cv;
 void viewerOneOff (pcl::visualization::PCLVisualizer& viewer)
@@ -63,19 +76,25 @@ std::tuple<uint8_t, uint8_t, uint8_t> get_texcolor(rs2::video_frame texture, rs2
 }
 
 
-ptr_cloud points_to_pcl(const rs2::points& points, const rs2::video_frame& color){
+tuple<pcl::PointCloud<pcl::PointXYZRGB>::Ptr,
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr> transformedPclPoints(const rs2::points &points, const rs2::video_frame &color,
+        Eigen::Matrix4f transformer){
 
     // OpenCV Mat for showing the rgb color image, just as part of processing
     Mat colorr(Size(640, 480), CV_8UC3, (void*)color.get_data(), Mat::AUTO_STEP);
 
     auto sp = points.get_profile().as<rs2::video_stream_profile>();
-    ptr_cloud cloud(new point_cloud);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 
     // Config of PCL Cloud object
     cloud->width = static_cast<uint32_t>(sp.width());
     cloud->height = static_cast<uint32_t>(sp.height());
     cloud->is_dense = false;
     cloud->points.resize(points.size());
+
+
+
 
     auto tex_coords = points.get_texture_coordinates();
     auto vertices = points.get_vertices();
@@ -97,16 +116,66 @@ ptr_cloud points_to_pcl(const rs2::points& points, const rs2::video_frame& color
         cloud->points[i].b = std::get<0>(current_color);
 
     }
+    pcl::transformPointCloud(*cloud, *transformed_cloud, transformer);
 
-    return cloud;
+    return make_tuple(transformed_cloud, cloud);
 }
+
+
+void totalTransformation(CameraTCPOrientation::TCP currentTCP, Vec3d rvec, Vec3d tvec) {
+    Mat frameRotationCam, frameRotationBase, netRotation;
+    cv::Rodrigues(rvec, frameRotationCam);
+    rvec = cv::Vec3d(currentTCP.rx/1000,  currentTCP.ry/1000, currentTCP.rz/1000);
+    cv::Rodrigues(rvec, frameRotationBase);
+
+    Eigen::Matrix4f transformationBase = createAffineFromRotationAndTranslation(rvec, tvec);
+
+    cout<<"Rotation base = "<<frameRotationBase <<" rotationCam=  "<<frameRotationCam<<endl;
+    cout<<"Translation base= "<<currentTCP.x<<","<<currentTCP.y<<","<<currentTCP.z<<"  translation cam = ";
+    printMatrix(tvec);
+}
+
+Eigen::Matrix4f createAffineFromRotationAndTranslation(Vec3f rotation, Vec3f translation) {
+    Eigen::Affine3f rx =
+            Eigen::Affine3f(Eigen::AngleAxisf(rotation[0], Eigen::Vector3f(1, 0, 0)));
+    Eigen::Affine3f ry =
+            Eigen::Affine3f(Eigen::AngleAxisf(rotation[1], Eigen::Vector3f(0, 1, 0)));
+    Eigen::Affine3f rz =
+            Eigen::Affine3f(Eigen::AngleAxisf(rotation[2], Eigen::Vector3f(0, 0, 1)));
+    Eigen::Affine3f r = rz * ry * rx;
+
+    Eigen::Affine3f t(Eigen::Translation3f(Eigen::Vector3f(translation[0]
+            ,translation[1],translation[2])));
+
+    Eigen::Matrix4f m = t.matrix();
+    m *= r.matrix();
+    return m;
+}
+
+void printMatrix(Vec3d buf)
+{
+    cout<<buf[0] << "," << buf[1] <<"," <<buf[2]<<endl;
+}
+
 
 
 int main() {
 
+    RealsensePoseEstimation poseEstimation("/home/rob-ot/Documents/calibration/CameraA/camCalibParams.xml", 1.5f);
+    auto[rvec, tvec] = poseEstimation.visualizeDetectedAxesAndReturnTransformation();
+
+    //CameraTCPOrientation orientation("192.168.1.101");
+    /*if(orientation.initializeModbus()) {
+        CameraTCPOrientation::TCP currentTCP = orientation.getTCPOrientation();
+        cout<<"x= "<<currentTCP.x<<" y=" <<currentTCP.y<<" z= "<<currentTCP.z<<endl;
+        totalTransformation(currentTCP, rvec, tvec);
+    }*/
+
+    Eigen::Matrix4f transformer1 = createAffineFromRotationAndTranslation(rvec, tvec);
+
     rs2::pointcloud pc;
 
-    RealsenseManager manager(1.5);
+    RealsenseManager manager = poseEstimation.getDeviceManager();
     pcl::visualization::CloudViewer viewer ("Visions of Johanna");
     //This will get called once per visualization iteration
     viewer.runOnVisualizationThread (viewerPsycho);
@@ -123,8 +192,11 @@ int main() {
         auto points = pc.calculate(depth_information);
 
         // Actual calling of conversion and saving XYZRGB cloud to file
-        ptr_cloud cloud = points_to_pcl(points, video_framed);
-        viewer.showCloud(cloud);
+        auto[transformed_cloud, cloud] =
+                transformedPclPoints(points, video_framed, transformer1);
+
+
+        viewer.showCloud(transformed_cloud);
 
         user_data++;
     }
