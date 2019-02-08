@@ -125,7 +125,7 @@
   <customwidget>
    <class>QVTKWidget</class>
    <extends>QWidget</extends>
-   <header location="global">QVTKWidget.h</header>
+   <header location="global">QVTKWidget2.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

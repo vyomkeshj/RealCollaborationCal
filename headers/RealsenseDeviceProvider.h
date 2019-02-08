@@ -15,6 +15,9 @@ const std::string platform_camera_name = "Platform Camera";
 class RealsenseDeviceProvider {
 
     //A structure representing each device
+
+public:
+
     struct view_port
     {
         rs2::frameset current_frameset;
@@ -22,8 +25,7 @@ class RealsenseDeviceProvider {
         rs2::pipeline_profile profile;
     };
 
-public:
-    void enable_device(rs2::device dev)
+    void enableDevice(rs2::device dev)
     {
         std::string serial_number(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
         std::lock_guard<std::mutex> lock(_mutex);
@@ -41,15 +43,19 @@ public:
         // Create a pipeline from the given device
         rs2::pipeline p;
         rs2::config c;
+        c.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+        c.enable_stream(RS2_STREAM_INFRARED, 640, 480, RS2_FORMAT_Y8, 30);
+        c.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+
+
         c.enable_device(serial_number);
         // Start the pipeline with the configuration
         rs2::pipeline_profile profile = p.start(c);
         // Hold it internally
         _devices.emplace(serial_number, view_port{ {}, p, profile });
-
     }
 
-    void remove_devices(const rs2::event_information& info)
+    void removeDevices(const rs2::event_information& info)
     {
         std::lock_guard<std::mutex> lock(_mutex);
         // Go over the list of devices and check if it was disconnected
@@ -67,7 +73,7 @@ public:
         }
     }
 
-    void poll_frames()
+    void pollFrames()
     {
         std::lock_guard<std::mutex> lock(_mutex);
         // Go over all device
@@ -81,19 +87,24 @@ public:
             }
         }
     }
-    size_t device_count()
+    int deviceCount()
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _devices.size();
     }
 
-    std::map<std::string, view_port> getEnabledDevices() {
+    std::map<std::string, view_port>& getEnabledDevices() {
         return _devices;
+    }
+
+    rs2::context& getContext() {
+        return context;
     }
 
 private:
     std::mutex _mutex;
     std::map<std::string, view_port> _devices;
+    rs2::context context;
 };
 
 

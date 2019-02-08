@@ -21,7 +21,8 @@ set(SOURCES headers/modbus.h headers/CameraTCPOrientation.h classes/CameraTCPOri
 add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
         classes/CameraTCPOrientation.cpp classes/modbus.cpp
         classes/CameraTagInBaseCoordinates.cpp
-        headers/CameraTagInBaseCoordinates.h headers/visionsofjohanna.hpp)
+        headers/CameraTagInBaseCoordinates.h headers/visionsofjohanna.hpp
+        headers/realsenseManager.h headers/RealsenseDeviceProvider.h)
 
 find_package( VTK 8.1 REQUIRED)
 

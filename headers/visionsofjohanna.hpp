@@ -11,6 +11,11 @@
 #define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
 
 #include <QMainWindow>
+#include <vtkRenderWindow.h>
+
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
 namespace Ui {
     class VisionsOfJohanna;
@@ -23,9 +28,14 @@ class VisionsOfJohanna : public QMainWindow
 public:
     explicit VisionsOfJohanna(QWidget *parent = nullptr);
     ~VisionsOfJohanna();
-    
+
+public Q_SLOTS:
+    void
+    randomButtonPressed ();
+
 private:
     Ui::VisionsOfJohanna *ui;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(int camera);
 };
 
 #endif
