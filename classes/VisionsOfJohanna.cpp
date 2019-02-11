@@ -18,6 +18,7 @@ QMainWindow(parent),
 ui(new Ui::VisionsOfJohanna)
 {
    ui->setupUi(this);
+
    viewer.reset (new pcl::visualization::PCLVisualizer ("viewer", false));
    ui->pclRendererVTKWidget->SetRenderWindow (viewer->getRenderWindow());
    viewer->setupInteractor (ui->pclRendererVTKWidget->GetInteractor(),
@@ -52,18 +53,18 @@ void VisionsOfJohanna::randomButtonPressed () {
 
 
 void VisionsOfJohanna::keepPointCloudsUpToDate() {
-    manager.grabNewFrames();
-    std::vector<string> deviceNames = manager.getConnectedDeviceIds();
-    for(const string &currentDevice: deviceNames) {
-        pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
-                manager.getPointCloudFromCamera(currentDevice);
-        if(!viewer->updatePointCloud (currentPc, currentDevice)) {
-            viewer->addPointCloud (currentPc, currentDevice);
+        manager.grabNewFrames();
+        std::vector<string> deviceNames = manager.getConnectedDeviceIds();
+        for (const string &currentDevice: deviceNames) {
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
+                    manager.getPointCloudFromCamera(currentDevice);
+            if (!viewer->updatePointCloud(currentPc, currentDevice)) {
+                viewer->addPointCloud(currentPc, currentDevice);
+            }
         }
-    }
-    viewer->resetCamera();
-    ui->pclRendererVTKWidget->show();
-    ui->pclRendererVTKWidget->update();
+        //viewer->resetCamera();
+        ui->pclRendererVTKWidget->show();
+        ui->pclRendererVTKWidget->update();
 
 
 }

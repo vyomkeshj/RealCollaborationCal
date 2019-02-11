@@ -31,44 +31,16 @@ public:
 
     }
 
+    RealsenseManager() {
+        initializeCameras();
+    }
     ~RealsenseManager() {
-        if (align != nullptr)
-            delete align;
     }
 
     float getDepthScale() {
         return depth_scale;
     }
 
-    tuple<Mat, depth_frame, video_frame> getCVAlignedMatrix(const string &cameraSerial) {
-        RealsenseDeviceProvider::view_port currentViewPort = getCameraStream(cameraSerial);
-        const rs2::pipeline &pipe = currentViewPort.pipe;
-        rs2::pipeline_profile profile = currentViewPort.profile;
-        depth_scale = get_depth_scale(profile.get_device());
-        align_to = find_stream_to_align(profile.get_streams());
-        align = new rs2::align(align_to);
-
-        if (profile_changed(pipe.get_active_profile().get_streams(), profile.get_streams())) {
-            profile = pipe.get_active_profile();
-            align_to = find_stream_to_align(profile.get_streams());
-            if (align != nullptr)
-                delete align;
-            align = new rs2::align(align_to);
-            depth_scale = get_depth_scale(profile.get_device());
-        }
-        rs2::frameset frameset = currentViewPort.current_frameset;
-        //get the processed aligned frame
-        auto processed = align->process(frameset);
-
-        // Trying to get both color and aligned depth frames
-        rs2::video_frame other_frame = processed.first_or_default(align_to);
-        rs2::depth_frame aligned_depth_frame = processed.get_depth_frame();
-        //If one of them is unavailable, continue iteration
-        remove_background(other_frame, aligned_depth_frame, depth_scale, depthFilter);
-        // Creating OpenCV matrix from IR image
-        Mat ir(Size(640, 480), CV_8UC1, (void *) other_frame.get_data(), Mat::AUTO_STEP);
-        return make_tuple(ir, aligned_depth_frame, other_frame);
-    }
 
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(const string &cameraSerial) {
@@ -101,8 +73,8 @@ public:
             provider.removeDevices(info);
             for (auto &&dev : info.get_new_devices()) {
                 provider.enableDevice(dev);
-                std::cout<<"number of connected RealsenseDevices = "<<getNumberOfDevices()<<std::endl;
             }
+            std::cout<<"number of connected RealsenseDevices = "<<getNumberOfDevices()<<std::endl;
         });
 
         // Initial population of the device list
@@ -110,6 +82,7 @@ public:
         {
             provider.enableDevice(dev);
         }
+        std::cout<<"number of connected RealsenseDevices = "<<getNumberOfDevices()<<std::endl;
 
         for (int i = 0; i < 100; i++) {
             grabNewFrames();
@@ -125,10 +98,7 @@ public:
     }
 
 private:
-    rs2_stream align_to;
-    rs2::align *align = nullptr;
     RealsenseDeviceProvider provider;
-    RealsenseDeviceProvider::view_port device;
 
     int selectedCamera = 0;
     int numberOfAvailableCameras = 0;

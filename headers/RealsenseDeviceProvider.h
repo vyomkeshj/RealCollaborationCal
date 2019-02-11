@@ -43,10 +43,10 @@ public:
         // Create a pipeline from the given device
         rs2::pipeline p;
         rs2::config c;
-        c.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
-        c.enable_stream(RS2_STREAM_INFRARED, 640, 480, RS2_FORMAT_Y8, 30);
-        c.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
-
+        //c.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
+        //c.enable_stream(RS2_STREAM_INFRARED, 640, 480, RS2_FORMAT_Y8, 30);
+        //c.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+        c.enable_all_streams();
 
         c.enable_device(serial_number);
 
@@ -55,8 +55,16 @@ public:
             rs2::pipeline_profile profile = p.start(c);
             _devices.emplace(serial_number, view_port{ {}, p, profile });
 
-        } catch (...) {
-            cout<<"ex"<<endl;
+        } catch (const rs2::error & e)
+        {
+            std::cerr << "RealSense error calling " << e.get_failed_function() << "(" << e.get_failed_args() << "):\n    " << e.what() << std::endl;
+            system("pause");
+        }
+
+        catch (const std::exception& e)
+        {
+            std::cerr << e.what() << std::endl;
+            system("pause");
         }
         // Hold it internally
     }
