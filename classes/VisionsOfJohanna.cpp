@@ -7,7 +7,7 @@
 #include <headers/RealsenseManager.h>
 
 #include "visionsofjohanna.hpp"
-#include <QVTKWidget.h>
+#include <QVTKWidget2.h>
 #include "ui_visionsofjohanna.h"
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
@@ -23,13 +23,11 @@ ui(new Ui::VisionsOfJohanna)
    viewer->setupInteractor (ui->pclRendererVTKWidget->GetInteractor(),
            ui->pclRendererVTKWidget->GetRenderWindow());
    ui->pclRendererVTKWidget->update();
-   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcloudptr = getPointCloudFromCamera(0);
+//   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcloudptr = getPointCloudFromCamera(0);
    viewer->addText ("Bumblebee", 200, 300, "text", 0);
-
-   viewer->addPointCloud (getPointCloudFromCamera(0), "cloud");
-   viewer->resetCamera();
-
-   ui->pclRendererVTKWidget->update();
+    keepPointCloudsUpToDate();
+   //viewer->addPointCloud (getPointCloudFromCamera(0), "cloud");
+   //viewer->resetCamera();
 
    connect (ui->enableDisableCameraButton,  SIGNAL (clicked ()), this, SLOT (randomButtonPressed ()));
 
@@ -48,10 +46,24 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getPointCloudFromCamera
 }
 
 void VisionsOfJohanna::randomButtonPressed () {
+    printf("Random button was pressed\n");
+    keepPointCloudsUpToDate();
+}
 
-    printf ("Random button was pressed\n");
 
-    viewer->updatePointCloud (getPointCloudFromCamera(0), "cloud");
+void VisionsOfJohanna::keepPointCloudsUpToDate() {
+    manager.grabNewFrames();
+    std::vector<string> deviceNames = manager.getConnectedDeviceIds();
+    for(const string &currentDevice: deviceNames) {
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
+                manager.getPointCloudFromCamera(currentDevice);
+        if(!viewer->updatePointCloud (currentPc, currentDevice)) {
+            viewer->addPointCloud (currentPc, currentDevice);
+        }
+    }
+    viewer->resetCamera();
+    ui->pclRendererVTKWidget->show();
     ui->pclRendererVTKWidget->update();
+
 
 }

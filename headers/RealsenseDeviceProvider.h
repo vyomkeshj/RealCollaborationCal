@@ -49,10 +49,16 @@ public:
 
 
         c.enable_device(serial_number);
+
         // Start the pipeline with the configuration
-        rs2::pipeline_profile profile = p.start(c);
+        try {
+            rs2::pipeline_profile profile = p.start(c);
+            _devices.emplace(serial_number, view_port{ {}, p, profile });
+
+        } catch (...) {
+            cout<<"ex"<<endl;
+        }
         // Hold it internally
-        _devices.emplace(serial_number, view_port{ {}, p, profile });
     }
 
     void removeDevices(const rs2::event_information& info)

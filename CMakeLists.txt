@@ -61,4 +61,4 @@ if( PCL_FOUND )
 
 endif()
 
-target_link_libraries(RealCollaborationCal Qt5::Widgets )
+target_link_libraries(RealCollaborationCal Qt5::Widgets Qt5::Core)

@@ -101,9 +101,9 @@ public:
             provider.removeDevices(info);
             for (auto &&dev : info.get_new_devices()) {
                 provider.enableDevice(dev);
+                std::cout<<"number of connected RealsenseDevices = "<<getNumberOfDevices()<<std::endl;
             }
         });
-        std::cout<<"number of connected RealsenseDevices = "<<getNumberOfDevices()<<std::endl;
 
         // Initial population of the device list
         for (auto &&dev : ctx.query_devices()) // Query the list of connected RealSense devices
@@ -117,7 +117,7 @@ public:
     }
 
     int getNumberOfDevices() {
-        provider.deviceCount();
+        return provider.deviceCount();
     }
 
     RealsenseDeviceProvider::view_port getCameraStream(const string &cameraSerial) {

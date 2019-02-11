@@ -36,6 +36,8 @@ public Q_SLOTS:
 private:
     Ui::VisionsOfJohanna *ui;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(int camera);
+    void keepPointCloudsUpToDate();
+
 };
 
 #endif
