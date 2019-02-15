@@ -15,15 +15,34 @@ set (CMAKE_INCLUDE_CURRENT_DIR ON)
 set(SOURCES headers/modbus.h headers/CameraTCPOrientation.h classes/CameraTCPOrientation.cpp
         headers/modbus_exception.h classes/modbus.cpp headers/RealsenseManager.h
         headers/RealsensePoseEstimation.h
-        headers/QVTKPCloudUpdater.h headers/RealsenseDeviceProvider.h )
+        headers/QVTKPCloudUpdater.h )
+
+
 
 
 add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
         classes/CameraTCPOrientation.cpp classes/modbus.cpp
         classes/CameraTagInBaseCoordinates.cpp
         headers/CameraTagInBaseCoordinates.h headers/visionsofjohanna.hpp
-        headers/realsenseManager.h headers/RealsenseDeviceProvider.h
-        )
+        headers/RealsenseManager.h headers/RealsenseDeviceProvider.h
+        headers/EigenFileExtension.h)
+
+
+
+
+
+
+#[[
+
+add_executable(RealCollaborationCal main.cpp
+        classes/CameraTCPOrientation.cpp classes/modbus.cpp
+        classes/CameraTagInBaseCoordinates.cpp
+        headers/CameraTagInBaseCoordinates.h
+        headers/RealsenseManager.h headers/RealsenseDeviceProvider.h headers/EigenFileExtension.h)
+
+]]
+
+
 
 find_package( VTK 8.1 REQUIRED)
 

@@ -8,6 +8,7 @@
 
 #include "visionsofjohanna.hpp"
 #include <QVTKWidget2.h>
+#include <headers/CameraTagInBaseCoordinates.h>
 #include "ui_visionsofjohanna.h"
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
@@ -58,6 +59,16 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
         for (const string &currentDevice: deviceNames) {
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
                     manager.getPointCloudFromCamera(currentDevice);
+            if(currentDevice == "817612070540") {
+                currentPc = CameraFrameTransformer::transformPcloudWithAffine
+                (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
+            } else if (currentDevice == "817612071554") {
+                currentPc = CameraFrameTransformer::transformPcloudWithAffine
+                        (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
+
+            }
+            viewer->addCoordinateSystem (1.0);
+
             if (!viewer->updatePointCloud(currentPc, currentDevice)) {
                 viewer->addPointCloud(currentPc, currentDevice);
             }

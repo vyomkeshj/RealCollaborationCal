@@ -15,8 +15,6 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/visualization/cloud_viewer.h>
-
-
 using namespace std;
 using namespace cv;
 using namespace rs2;
@@ -41,7 +39,35 @@ public:
         return depth_scale;
     }
 
+    tuple<Mat, depth_frame, video_frame> getCVAlignedMatrix(const string &cameraSerial) {
+        grabNewFrames();
+        RealsenseDeviceProvider::view_port currentDevice = getCameraStream(cameraSerial);
+        rs2::pipeline_profile profile;
+            profile = currentDevice.profile;
+            align_to = find_stream_to_align(profile.get_streams());
+            align = new rs2::align(align_to);
+            depth_scale = get_depth_scale(profile.get_device());
 
+         //get the processed aligned frame
+
+        auto processed = align->process(currentDevice.current_frameset);
+
+            // Trying to get both color and aligned depth frames
+            rs2::video_frame other_frame = processed.first_or_default(align_to);
+            rs2::depth_frame aligned_depth_frame = processed.get_depth_frame();
+            //rs2::video_frame other_frame = currentDevice.current_frameset.first(RS2_STREAM_COLOR);
+            //rs2::video_frame aligned_depth_frame = currentDevice.current_frameset.first(RS2_STREAM_DEPTH);
+        if(align!= nullptr) {
+            delete align;
+        }
+
+        //If one of them is unavailable, continue iteration
+
+            remove_background(other_frame, aligned_depth_frame, depth_scale, depthFilter);
+            // Creating OpenCV matrix from IR image
+            Mat ir(Size(640, 480), CV_8UC1, (void *) other_frame.get_data(), Mat::DEPTH_MASK);
+            return make_tuple(ir, aligned_depth_frame, other_frame);
+        }
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(const string &cameraSerial) {
         RealsenseDeviceProvider::view_port currentViewPort = getCameraStream(cameraSerial);
@@ -53,6 +79,7 @@ public:
         rs2::pointcloud pc;
         pc.map_to(currentVideoFrame);
         auto points = pc.calculate(currentDepthFrame);
+
         return convertToPclCloud(points, currentVideoFrame);
     }
 
@@ -93,15 +120,16 @@ public:
         return provider.deviceCount();
     }
 
-    RealsenseDeviceProvider::view_port getCameraStream(const string &cameraSerial) {
+        RealsenseDeviceProvider::view_port getCameraStream(const string &cameraSerial) {
         return provider.getEnabledDevices().at(cameraSerial);
     }
 
 private:
     RealsenseDeviceProvider provider;
-
+    rs2::align *align;
     int selectedCamera = 0;
     int numberOfAvailableCameras = 0;
+    rs2_stream align_to;
 
     float depth_scale;
     float depthFilter = 0.0f;
@@ -148,18 +176,19 @@ private:
         }
     }
 
+
     rs2_stream find_stream_to_align(const vector<stream_profile> &streams) {
         rs2_stream align_to = RS2_STREAM_ANY;
         bool depth_stream_found = false;
-        bool color_stream_found = false;
+        bool infra_stream_found = false;
         for (rs2::stream_profile sp : streams) {
             rs2_stream profile_stream = sp.stream_type();
             if (profile_stream != RS2_STREAM_DEPTH) {
-                if (!color_stream_found)         //Prefer color
+                if (!infra_stream_found)         //Prefer Infrared
                     align_to = profile_stream;
 
-                if (profile_stream == RS2_STREAM_COLOR) {
-                    color_stream_found = true;
+                if (profile_stream == RS2_STREAM_INFRARED) {
+                    infra_stream_found = true;
                 }
             } else {
                 depth_stream_found = true;
@@ -171,7 +200,7 @@ private:
 
         if (align_to == RS2_STREAM_ANY)
             throw std::runtime_error("No stream found to align with Depth");
-
+        cout<<"aligning with color? = "<<(align_to == RS2_STREAM_COLOR)<<endl;
         return align_to;
     }
 
@@ -193,17 +222,19 @@ private:
         // Iterating through all points and setting XYZ coordinates
         // and RGB values
         for (int i = 0; i < points.size(); ++i) {
-            cloud->points[i].x = vertices[i].x;
-            cloud->points[i].y = vertices[i].y;
-            cloud->points[i].z = vertices[i].z;
+            if(vertices[i].z< depthFilter) {
+                cloud->points[i].x = vertices[i].x;
+                cloud->points[i].y = vertices[i].y;
+                cloud->points[i].z = vertices[i].z;
 
-            std::tuple<uint8_t, uint8_t, uint8_t> current_color;
-            current_color = get_texcolor(color, tex_coords[i]);
+                std::tuple<uint8_t, uint8_t, uint8_t> current_color;
+                current_color = get_texcolor(color, tex_coords[i]);
 
-            // Reversed order- 2-1-0 because of BGR model used in camera
-            cloud->points[i].r = std::get<2>(current_color);
-            cloud->points[i].g = std::get<1>(current_color);
-            cloud->points[i].b = std::get<0>(current_color);
+                // Reversed order- 2-1-0 because of BGR model used in camera
+                cloud->points[i].r = std::get<2>(current_color);
+                cloud->points[i].g = std::get<1>(current_color);
+                cloud->points[i].b = std::get<0>(current_color);
+            }
 
         }
 

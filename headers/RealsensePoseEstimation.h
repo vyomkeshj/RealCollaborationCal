@@ -29,9 +29,9 @@ public:
      * Returns @int markerId, @Point3f rotation respect to first marker,
      * @Point3f translation required
      * */
-    /*tuple<bool, Point3f, Point3f>*/void getEstimatedPose() {
+    /*tuple<bool, Point3f, Point3f>*/void getEstimatedPose(string calibCamId) {
         while(true) {
-            auto[image, depth_information, video_framed] = this->realsenseManager.getCVAlignedMatrix();
+            auto[image, depth_information, video_framed] = this->realsenseManager.getCVAlignedMatrix(calibCamId);
 
             double tick = (double) getTickCount();
 
@@ -51,15 +51,12 @@ public:
         }
     }
 
-    RealsenseManager getDeviceManager() {
-        return realsenseManager;
-    }
-
-    tuple<Vec3d, Vec3d> visualizeDetectedAxesAndReturnTransformation() {
+    tuple<Vec3d, Vec3d> visualizeDetectedAxesAndReturnTransformation(String calibcamId) {
         Vec3d rvec, tvec;
         while(true) {
             Mat imageCopy;
-            auto[image, depth_information, video_frame] = this->realsenseManager.getCVAlignedMatrix();
+            realsenseManager.getConnectedDeviceIds();
+            auto[image, depth_information, video_frame] = this->realsenseManager.getCVAlignedMatrix(calibcamId);
 
             double tick = (double)getTickCount();
 
@@ -96,7 +93,7 @@ public:
             aruco::drawAxis(imageCopy, camMatrix, distCoeffs, rvec, tvec, 0.1);
             //getEstimatedPose();
             //printMatrix(rvec);
-            applyColorMap(imageCopy, imageCopy, COLORMAP_JET);
+            //applyColorMap(imageCopy, imageCopy, COLORMAP_JET);
             imshow("Pose Estimator", imageCopy);
             char key = (char)waitKey(waitTime);
             if(key == 27) break;
@@ -124,8 +121,7 @@ private:
     RealsenseManager realsenseManager;
     int dictionaryId = 0;
     bool showRejected = true;
-    bool refindStrategy = false;
-    int waitTime = 10;
+    int waitTime = 100;
     Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
     Ptr<aruco::Dictionary> dictionary =
             aruco::getPredefinedDictionary(aruco::PREDEFINED_DICTIONARY_NAME(dictionaryId));
@@ -141,33 +137,8 @@ private:
         fs["distortion_coefficients"] >> distCoeffs;
         return true;
     }
+    template<class Matrix>
 
-     bool readDetectorParameters(string filename, Ptr<aruco::DetectorParameters> &params) {
-        FileStorage fs(filename, FileStorage::READ);
-        if(!fs.isOpened())
-            return false;
-        fs["adaptiveThreshWinSizeMin"] >> params->adaptiveThreshWinSizeMin;
-        fs["adaptiveThreshWinSizeMax"] >> params->adaptiveThreshWinSizeMax;
-        fs["adaptiveThreshWinSizeStep"] >> params->adaptiveThreshWinSizeStep;
-        fs["adaptiveThreshConstant"] >> params->adaptiveThreshConstant;
-        fs["minMarkerPerimeterRate"] >> params->minMarkerPerimeterRate;
-        fs["maxMarkerPerimeterRate"] >> params->maxMarkerPerimeterRate;
-        fs["polygonalApproxAccuracyRate"] >> params->polygonalApproxAccuracyRate;
-        fs["minCornerDistanceRate"] >> params->minCornerDistanceRate;
-        fs["minDistanceToBorder"] >> params->minDistanceToBorder;
-        fs["minMarkerDistanceRate"] >> params->minMarkerDistanceRate;
-        fs["cornerRefinementMethod"] >> params->cornerRefinementMethod;
-        fs["cornerRefinementWinSize"] >> params->cornerRefinementWinSize;
-        fs["cornerRefinementMaxIterations"] >> params->cornerRefinementMaxIterations;
-        fs["cornerRefinementMinAccuracy"] >> params->cornerRefinementMinAccuracy;
-        fs["markerBorderBits"] >> params->markerBorderBits;
-        fs["perspectiveRemovePixelPerCell"] >> params->perspectiveRemovePixelPerCell;
-        fs["perspectiveRemoveIgnoredMarginPerCell"] >> params->perspectiveRemoveIgnoredMarginPerCell;
-        fs["maxErroneousBitsInBorderRate"] >> params->maxErroneousBitsInBorderRate;
-        fs["minOtsuStdDev"] >> params->minOtsuStdDev;
-        fs["errorCorrectionRate"] >> params->errorCorrectionRate;
-        return true;
-    }
 
     void printMatrix(Vec3d buf)
     {
