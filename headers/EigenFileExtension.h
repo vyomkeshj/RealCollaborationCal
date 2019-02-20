@@ -10,7 +10,7 @@
 namespace EigenFile{
     template<class Matrix>
     void write_binary(const char* filename, const Matrix& matrix){
-        std::ofstream out(filename,  std::ios::binary);
+        std::ofstream out(filename, std::ios::out | std::ios::binary);
         typename Matrix::Index rows=matrix.rows(), cols=matrix.cols();
         out.write((char*) (&rows), sizeof(typename Matrix::Index));
         out.write((char*) (&cols), sizeof(typename Matrix::Index));

@@ -12,7 +12,7 @@
 #include "ui_visionsofjohanna.h"
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
-RealsenseManager manager(1.5f);
+RealsenseManager manager(1.0f);
 
 VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
 QMainWindow(parent),
@@ -25,13 +25,21 @@ ui(new Ui::VisionsOfJohanna)
    viewer->setupInteractor (ui->pclRendererVTKWidget->GetInteractor(),
            ui->pclRendererVTKWidget->GetRenderWindow());
    ui->pclRendererVTKWidget->update();
-//   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcloudptr = getPointCloudFromCamera(0);
    viewer->addText ("Bumblebee", 200, 300, "text", 0);
-    keepPointCloudsUpToDate();
-   //viewer->addPointCloud (getPointCloudFromCamera(0), "cloud");
-   //viewer->resetCamera();
+   keepPointCloudsUpToDate();
+   updateDeviceList();
+   setupSliders();
+   connect (ui->enableDisableCameraButton,  SIGNAL (clicked ()), this, SLOT (enableTogglePressed()));
+    connect(ui->calibrateSelectedCameraButton, SIGNAL (clicked()), this, SLOT(startCalibration()));
+    connect(ui->saveCalibrationButton, SIGNAL (clicked()), this, SLOT(saveCalibration()));
+   connect(ui->cameraListWidget, SIGNAL (itemClicked(QListWidgetItem *)), this, SLOT(updateSelectedDevice(QListWidgetItem *)));
+   connect(ui->rz_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationZSliderChanged(int)));
+   connect(ui->ry_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationYSliderChanged(int)));
+   connect(ui->rx_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationXSliderChanged(int)));
+   connect(ui->x_slider, SIGNAL (valueChanged(int)), this, SLOT(translationXSliderChanged(int)));
+   connect(ui->y_slider, SIGNAL (valueChanged(int)), this, SLOT(translationYSliderChanged(int)));
+   connect(ui->z_slider, SIGNAL (valueChanged(int)), this, SLOT(translationZSliderChanged(int)));
 
-   connect (ui->enableDisableCameraButton,  SIGNAL (clicked ()), this, SLOT (randomButtonPressed ()));
 
 }
 
@@ -47,35 +55,154 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getPointCloudFromCamera
     return manager.getPointCloudFromCamera(deviceNames[camera]);
 }
 
-void VisionsOfJohanna::randomButtonPressed () {
+void VisionsOfJohanna::enableTogglePressed() {
     printf("Random button was pressed\n");
     keepPointCloudsUpToDate();
 }
 
-
 void VisionsOfJohanna::keepPointCloudsUpToDate() {
-        manager.grabNewFrames();
-        std::vector<string> deviceNames = manager.getConnectedDeviceIds();
+    manager.grabNewFrames();
+    std::vector<string> deviceNames = manager.getConnectedDeviceIds();
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr from;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr to;
         for (const string &currentDevice: deviceNames) {
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
                     manager.getPointCloudFromCamera(currentDevice);
             if(currentDevice == "817612070540") {
                 currentPc = CameraFrameTransformer::transformPcloudWithAffine
                 (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
+                from = currentPc;
+                //continue;
             } else if (currentDevice == "817612071554") {
                 currentPc = CameraFrameTransformer::transformPcloudWithAffine
                         (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
-
+                to = currentPc;
             }
-            viewer->addCoordinateSystem (1.0);
 
             if (!viewer->updatePointCloud(currentPc, currentDevice)) {
                 viewer->addPointCloud(currentPc, currentDevice);
             }
         }
-        //viewer->resetCamera();
+        //from = CameraFrameTransformer::transformPcloudWithIcp(from, to);
+        //if (!viewer->updatePointCloud(from, "icp")) {
+        //viewer->addPointCloud(from, "icp");
+   //}
+
+    //viewer->resetCamera();
         ui->pclRendererVTKWidget->show();
         ui->pclRendererVTKWidget->update();
+}
 
+void VisionsOfJohanna::updateDeviceList() {
+    std::vector<string> deviceNames = manager.getConnectedDeviceIds();
+    for (const string &currentDevice: deviceNames) {
+        QString itemName = QString::fromStdString(currentDevice);;
+        ui->cameraListWidget->addItem(new QListWidgetItem(itemName));
+    }
+}
 
+void VisionsOfJohanna::updateSelectedDevice(QListWidgetItem *item) {
+    this->selectedDevice = item;
+}
+
+void VisionsOfJohanna::setupSliders() {
+    ui->rx_slider->setRange(0, 628);
+    ui->ry_slider->setRange(0, 628);
+    ui->rz_slider->setRange(0, 628);
+    ui->x_slider->setRange(-10000, 10000);
+    ui->y_slider->setRange(-10000, 10000);
+    ui->z_slider->setRange(-10000, 10000);
+}
+
+void VisionsOfJohanna::startCalibration() {
+    isCalibrationEnabled = true;
+    std::string serial = this->selectedDevice->text().toUtf8().constData();
+
+    EigenFile::read_binary(serial.c_str(), currentTransformer);
+}
+
+void VisionsOfJohanna::rotationZSliderChanged(int sliderval) {
+    if (isCalibrationEnabled) {
+    transformer.rz = (sliderval) / 100.000;
+    //transform the pointcloud with the new value
+    Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+    std::string serial = this->selectedDevice->text().toUtf8().constData();
+
+    addOrUpdatepointcloud(serial, netTransform);
+    }
+}
+
+void VisionsOfJohanna::rotationYSliderChanged(int sliderval) {
+    if (isCalibrationEnabled) {
+        transformer.ry = (sliderval) / 100.000;
+        //transform the pointcloud with the new value
+        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        std::string serial = this->selectedDevice->text().toUtf8().constData();
+
+        addOrUpdatepointcloud(serial, netTransform);
+    }
+}
+
+void VisionsOfJohanna::rotationXSliderChanged(int sliderval) {
+    if (isCalibrationEnabled) {
+        transformer.rx = (sliderval) / 100.000;
+        //transform the pointcloud with the new value
+        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        std::string serial = this->selectedDevice->text().toUtf8().constData();
+        addOrUpdatepointcloud(serial, netTransform);
+    }
+}
+
+void VisionsOfJohanna::translationXSliderChanged(int sliderval) {
+    if (isCalibrationEnabled) {
+        transformer.x = (sliderval) / 100.000;
+        //transform the pointcloud with the new value
+        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        std::string serial = this->selectedDevice->text().toUtf8().constData();
+        addOrUpdatepointcloud(serial, netTransform);
+    }
+}
+
+void VisionsOfJohanna::translationYSliderChanged(int sliderval) {
+    if (isCalibrationEnabled) {
+        transformer.y = (sliderval) / 100.000;
+        //transform the pointcloud with the new value
+        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        std::string serial = this->selectedDevice->text().toUtf8().constData();
+        addOrUpdatepointcloud(serial, netTransform);
+    }
+}
+
+void VisionsOfJohanna::translationZSliderChanged(int sliderval) {
+    if (isCalibrationEnabled) {
+        transformer.z = (sliderval) / 100.000;
+        //transform the pointcloud with the new value
+        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        std::string serial = this->selectedDevice->text().toUtf8().constData();
+        addOrUpdatepointcloud(serial, netTransform);
+    }
+}
+
+void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4d transform) {
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
+            manager.getPointCloudFromCamera(deviceSerial);
+
+    currentPc = CameraFrameTransformer::transformPcloudWithAffine
+            (currentPc, transform);
+
+    if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
+        viewer->addPointCloud(currentPc, deviceSerial);
+    }
+    ui->pclRendererVTKWidget->show();
+    ui->pclRendererVTKWidget->update();
+
+}
+
+void VisionsOfJohanna::saveCalibration() {
+    isCalibrationEnabled = false;
+    transformer.reset();
+    std::string serial = this->selectedDevice->text().toUtf8().constData();
+    Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+    std::string matrixFile = "/home/rob-ot/Documents/calibration/Camera70540/"+serial+"M.dat";
+    EigenFile::write_binary(matrixFile.c_str(), netTransform);
 }

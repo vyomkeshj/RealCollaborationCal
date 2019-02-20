@@ -16,6 +16,8 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/visualization/pcl_visualizer.h>
+#include <QtWidgets/QListWidget>
+
 
 namespace Ui {
     class VisionsOfJohanna;
@@ -30,13 +32,58 @@ public:
     ~VisionsOfJohanna();
 
 public Q_SLOTS:
-    void
-    randomButtonPressed ();
+    void enableTogglePressed();
+    void startCalibration();
+    void saveCalibration();
+
+    void rotationZSliderChanged(int sliderval);
+    void rotationXSliderChanged(int sliderval);
+    void rotationYSliderChanged(int sliderval);
+
+    void translationXSliderChanged(int sliderval);
+    void translationYSliderChanged(int sliderval);
+    void translationZSliderChanged(int sliderval);
+
+    void updateSelectedDevice(QListWidgetItem *item);
 
 private:
+    struct afterTransformer{
+        double rx;
+        double ry;
+        double rz;
+
+        double x;
+        double y;
+        double z;
+
+        Eigen::Matrix4d getNetAffineTransformer() {
+            Eigen::Affine3d transformer = Eigen::Affine3d::Identity();
+            Eigen::AngleAxisd rollAngle(rz, Eigen::Vector3d::UnitZ());
+            Eigen::AngleAxisd yawAngle(ry, Eigen::Vector3d::UnitY());
+            Eigen::AngleAxisd pitchAngle(rx, Eigen::Vector3d::UnitX());
+
+            Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+            Eigen::Matrix3d rotationMatrix = q.matrix();
+            transformer.prerotate(rotationMatrix);
+            transformer.pretranslate(Eigen::Vector3d(x/100,y/100, z/100));
+            return transformer.matrix();
+        }
+
+        void reset() {
+            rx, ry, rz =0;
+            x,y,z =0;
+        }
+    } transformer;
     Ui::VisionsOfJohanna *ui;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(int camera);
+    bool isCalibrationEnabled = false;
+    Eigen::Matrix4d currentTransformer;
+    QListWidgetItem *selectedDevice;
+
     void keepPointCloudsUpToDate();
+    void updateDeviceList();
+    void setupSliders();
+    void addOrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);
 
 };
 
