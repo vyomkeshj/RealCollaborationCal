@@ -109,9 +109,9 @@ void VisionsOfJohanna::setupSliders() {
     ui->rx_slider->setRange(0, 628);
     ui->ry_slider->setRange(0, 628);
     ui->rz_slider->setRange(0, 628);
-    ui->x_slider->setRange(-10000, 10000);
-    ui->y_slider->setRange(-10000, 10000);
-    ui->z_slider->setRange(-10000, 10000);
+    ui->x_slider->setRange(-30000, 30000);
+    ui->y_slider->setRange(-30000, 30000);
+    ui->z_slider->setRange(-30000, 30000);
 }
 
 void VisionsOfJohanna::startCalibration() {
@@ -200,9 +200,10 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
 
 void VisionsOfJohanna::saveCalibration() {
     isCalibrationEnabled = false;
-    transformer.reset();
     std::string serial = this->selectedDevice->text().toUtf8().constData();
     Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
-    std::string matrixFile = "/home/rob-ot/Documents/calibration/Camera70540/"+serial+"M.dat";
+    std::string matrixFile = "/home/rob-ot/Documents/calibration/Camera70540/"+serial+".dat";
     EigenFile::write_binary(matrixFile.c_str(), netTransform);
+    transformer.reset();
+
 }

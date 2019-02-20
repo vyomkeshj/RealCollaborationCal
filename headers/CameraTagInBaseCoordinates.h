@@ -22,9 +22,9 @@ namespace CameraFrameTransformer {
                                                                     char* cameraSerial) {
         Eigen::Matrix4d transformer;
         EigenFile::read_binary(cameraSerial, transformer);
-        Eigen::Affine3d inverter(transformer);
-        inverter = inverter.inverse();
-        transformer = inverter.matrix();
+       // Eigen::Affine3d inverter(transformer);
+        //inverter = inverter.inverse();
+        //transformer = inverter.matrix();
 
         std::cout<<"transformer= "<<transformer<<std::endl;
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
