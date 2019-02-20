@@ -30,8 +30,7 @@ ui(new Ui::VisionsOfJohanna)
    updateDeviceList();
    setupSliders();
    connect (ui->enableDisableCameraButton,  SIGNAL (clicked ()), this, SLOT (enableTogglePressed()));
-    connect(ui->calibrateSelectedCameraButton, SIGNAL (clicked()), this, SLOT(startCalibration()));
-    connect(ui->saveCalibrationButton, SIGNAL (clicked()), this, SLOT(saveCalibration()));
+   connect(ui->calibrateSelectedCameraButton, SIGNAL (clicked()), this, SLOT(startCalibration()));connect(ui->saveCalibrationButton, SIGNAL (clicked()), this, SLOT(saveCalibration()));
    connect(ui->cameraListWidget, SIGNAL (itemClicked(QListWidgetItem *)), this, SLOT(updateSelectedDevice(QListWidgetItem *)));
    connect(ui->rz_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationZSliderChanged(int)));
    connect(ui->ry_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationYSliderChanged(int)));
@@ -40,7 +39,10 @@ ui(new Ui::VisionsOfJohanna)
    connect(ui->y_slider, SIGNAL (valueChanged(int)), this, SLOT(translationYSliderChanged(int)));
    connect(ui->z_slider, SIGNAL (valueChanged(int)), this, SLOT(translationZSliderChanged(int)));
 
-
+   QTimer *pointCloudUpdateTimer= new QTimer(this);
+   pointCloudUpdateTimer->setInterval(2*100);
+   connect(pointCloudUpdateTimer, SIGNAL(timeout()), this, SLOT(repaintPointCloud()));
+   pointCloudUpdateTimer->start();
 }
 
 VisionsOfJohanna::~VisionsOfJohanna()
@@ -196,6 +198,11 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
     ui->pclRendererVTKWidget->show();
     ui->pclRendererVTKWidget->update();
 
+}
+
+void VisionsOfJohanna::repaintPointCloud() {
+    if(!isCalibrationEnabled)
+    keepPointCloudsUpToDate();
 }
 
 void VisionsOfJohanna::saveCalibration() {

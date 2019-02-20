@@ -45,7 +45,7 @@ public Q_SLOTS:
     void translationZSliderChanged(int sliderval);
 
     void updateSelectedDevice(QListWidgetItem *item);
-
+    void repaintPointCloud();
 private:
     struct afterTransformer{
         double rx;
