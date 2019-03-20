@@ -10,6 +10,13 @@
 #include <QVTKWidget2.h>
 #include <headers/CameraTagInBaseCoordinates.h>
 #include "ui_visionsofjohanna.h"
+#include <pcl/io/ply_io.h>
+#include <pcl/search/search.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/segmentation/region_growing.h>
+#include <pcl/segmentation/region_growing_rgb.h>
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
 RealsenseManager manager(1.0f);
@@ -25,7 +32,9 @@ ui(new Ui::VisionsOfJohanna)
    viewer->setupInteractor (ui->pclRendererVTKWidget->GetInteractor(),
            ui->pclRendererVTKWidget->GetRenderWindow());
    ui->pclRendererVTKWidget->update();
-   viewer->addText ("Bumblebee", 200, 300, "text", 0);
+   viewer->addText ("Bumblebee", 0, 0, "text", 0);
+   viewer->addCoordinateSystem(1.0);
+
    keepPointCloudsUpToDate();
    updateDeviceList();
    setupSliders();
@@ -58,34 +67,58 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getPointCloudFromCamera
 }
 
 void VisionsOfJohanna::enableTogglePressed() {
-    printf("Random button was pressed\n");
+    printf("Toggle pressed\n");
     keepPointCloudsUpToDate();
 }
-
 void VisionsOfJohanna::keepPointCloudsUpToDate() {
     manager.grabNewFrames();
     std::vector<string> deviceNames = manager.getConnectedDeviceIds();
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr from;
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr to;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr completePc(new pcl::PointCloud<pcl::PointXYZRGB>());
+
         for (const string &currentDevice: deviceNames) {
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
                     manager.getPointCloudFromCamera(currentDevice);
             if(currentDevice == "817612070540") {
                 currentPc = CameraFrameTransformer::transformPcloudWithAffine
                 (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
-                from = currentPc;
+                sor.setInputCloud (currentPc);
+                sor.setMeanK (10);
+                sor.setStddevMulThresh (1.5);
+                sor.filter (*currentPc);
+
+
+                *completePc = *completePc + *currentPc;
                 //continue;
             } else if (currentDevice == "817612071554") {
                 currentPc = CameraFrameTransformer::transformPcloudWithAffine
                         (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
-                to = currentPc;
+                sor.setInputCloud (currentPc);
+                sor.setMeanK (10);
+                sor.setStddevMulThresh (1.5);
+                sor.filter (*currentPc);
+
+                *completePc = *completePc + *currentPc;
+
+            } else if (currentDevice == "817612070983") {
+                currentPc = CameraFrameTransformer::transformPcloudWithAffine
+                        (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
+                sor.setInputCloud (currentPc);
+                sor.setMeanK (10);
+                sor.setStddevMulThresh (1.5);
+                sor.filter (*currentPc);
+
+                *completePc = *completePc + *currentPc;
             }
 
-            if (!viewer->updatePointCloud(currentPc, currentDevice)) {
-                viewer->addPointCloud(currentPc, currentDevice);
-            }
         }
-        //from = CameraFrameTransformer::transformPcloudWithIcp(from, to);
+        completePc = getSegementedPc(completePc);
+    if (!viewer->updatePointCloud(completePc, "net")) {
+        viewer->addPointCloud(completePc, "net");
+    }
+
+    pcPublisher.setPointCloud(*completePc);
+
+    //from = CameraFrameTransformer::transformPcloudWithIcp(from, to);
         //if (!viewer->updatePointCloud(from, "icp")) {
         //viewer->addPointCloud(from, "icp");
    //}
@@ -120,7 +153,9 @@ void VisionsOfJohanna::startCalibration() {
     isCalibrationEnabled = true;
     std::string serial = this->selectedDevice->text().toUtf8().constData();
 
-    EigenFile::read_binary(serial.c_str(), currentTransformer);
+    //EigenFile::read_binary(serial.c_str(), currentTransformer);
+    Eigen::Affine3d identity = Eigen::Affine3d::Identity();
+    currentTransformer = identity.matrix();
 }
 
 void VisionsOfJohanna::rotationZSliderChanged(int sliderval) {
@@ -168,7 +203,7 @@ void VisionsOfJohanna::translationXSliderChanged(int sliderval) {
 void VisionsOfJohanna::translationYSliderChanged(int sliderval) {
     if (isCalibrationEnabled) {
         transformer.y = (sliderval) / 100.000;
-        //transform the pointcloud with the new value
+        //transform the pointcloud with the new valuesetDistanceThreshold
         Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
         std::string serial = this->selectedDevice->text().toUtf8().constData();
         addOrUpdatepointcloud(serial, netTransform);
@@ -185,14 +220,38 @@ void VisionsOfJohanna::translationZSliderChanged(int sliderval) {
     }
 }
 
+pcl::PointCloud <pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getSegementedPc(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcIn) {
+pcl::search::Search<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+    pcl::IndicesPtr indices (new std::vector <int>);
+    pcl::PassThrough<pcl::PointXYZRGB> pass;
+    pass.setInputCloud (pcIn);
+    pass.setFilterFieldName ("z");
+    pass.setFilterLimits (0.0, 0.6);
+    pass.filter (*indices);
+
+    pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;
+    reg.setInputCloud (pcIn);
+    reg.setIndices (indices);
+    reg.setSearchMethod (tree);
+    reg.setDistanceThreshold (0.08);
+    reg.setPointColorThreshold (3);
+    reg.setRegionColorThreshold (5);
+    reg.setMinClusterSize (10000);
+
+    std::vector <pcl::PointIndices> clusters;
+    reg.extract (clusters);
+
+    pcl::PointCloud <pcl::PointXYZRGB>::Ptr colored_cloud = reg.getColoredCloud();
+    return colored_cloud;
+}
+
 void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4d transform) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
             manager.getPointCloudFromCamera(deviceSerial);
 
     currentPc = CameraFrameTransformer::transformPcloudWithAffine
             (currentPc, transform);
-
-    if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
+     if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
         viewer->addPointCloud(currentPc, deviceSerial);
     }
     ui->pclRendererVTKWidget->show();

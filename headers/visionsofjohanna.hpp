@@ -15,9 +15,11 @@
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
+#include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <QtWidgets/QListWidget>
 
+#include "ur3-livemodel/headers/PointCloudROSPublisher.h"
 
 namespace Ui {
     class VisionsOfJohanna;
@@ -66,6 +68,7 @@ private:
             Eigen::Matrix3d rotationMatrix = q.matrix();
             transformer.prerotate(rotationMatrix);
             transformer.pretranslate(Eigen::Vector3d(x/100,y/100, z/100));
+
             return transformer.matrix();
         }
 
@@ -75,8 +78,10 @@ private:
         }
     } transformer;
     Ui::VisionsOfJohanna *ui;
+    PointCloudROSPublisher pcPublisher;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(int camera);
     bool isCalibrationEnabled = false;
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
     Eigen::Matrix4d currentTransformer;
     QListWidgetItem *selectedDevice;
 
@@ -84,7 +89,7 @@ private:
     void updateDeviceList();
     void setupSliders();
     void addOrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);
-
+    pcl::PointCloud <pcl::PointXYZRGB>::Ptr getSegementedPc(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcIn);
 };
 
 #endif

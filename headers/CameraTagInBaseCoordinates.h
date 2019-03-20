@@ -22,11 +22,8 @@ namespace CameraFrameTransformer {
                                                                     char* cameraSerial) {
         Eigen::Matrix4d transformer;
         EigenFile::read_binary(cameraSerial, transformer);
-       // Eigen::Affine3d inverter(transformer);
-        //inverter = inverter.inverse();
-        //transformer = inverter.matrix();
 
-        std::cout<<"transformer= "<<transformer<<std::endl;
+        std::cout<<"transformer= "<<transformer<<"device="<<cameraSerial<<std::endl;
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
         pcl::transformPointCloud (*initial, *transformed_cloud, transformer);
         return transformed_cloud;
@@ -34,10 +31,16 @@ namespace CameraFrameTransformer {
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPcloudWithAffine(  pcl::PointCloud<pcl::PointXYZRGB>::Ptr initial,
                                                                        Eigen::Matrix4d transformer) {
-
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
             pcl::transformPointCloud (*initial, *transformed_cloud, transformer);
             return transformed_cloud;
+
+    }
+
+    Eigen::Matrix4d getAffineMatrixForCamera(char* cameraSerial) {
+            Eigen::Matrix4d transformer;
+            EigenFile::read_binary(cameraSerial, transformer);
+            return transformer;
     }
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPcloudWithIcp(pcl::PointCloud<pcl::PointXYZRGB>::Ptr source,
@@ -61,6 +64,5 @@ namespace CameraFrameTransformer {
     }
 
 };
-
 
 #endif //REALCOLLABORATIONCAL_CAMERATAGINBASECOORDINATES_H
