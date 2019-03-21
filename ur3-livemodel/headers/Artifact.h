@@ -20,11 +20,7 @@ public:
 
     const Eigen::Vector3d &getWorldTranslation() const;
 
-    void setWorldTranslation(const Eigen::Vector3d &worldTranslation);
-
     const Eigen::Vector3d &getWorldRotationRpy() const;
-
-    void setWorldRotationRpy(const Eigen::Vector3d &worldRotationRpy);
 
     const Eigen::Vector3d &getRotationAxis() const;
 

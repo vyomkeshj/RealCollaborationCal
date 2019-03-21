@@ -21,3 +21,7 @@ void RobotPart::setWorldTranslation(const Eigen::Vector3d &worldTranslation) {
 void RobotPart::setWorldRotationRpy(const Eigen::Vector3d &worldRotationRpy) {
     this->worldRotationRpy = worldRotationRpy;
 }
+
+RobotPart::RobotPart() {
+
+}

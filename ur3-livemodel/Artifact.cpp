@@ -7,11 +7,12 @@
 #include "ur3-livemodel/headers/Artifact.h"
 
 
-Artifact::Artifact(const std::string &ojectStlFile, float partRadius, float partLength) {
+Artifact::Artifact(const std::string &ojectStlFile, float partRadius, float partLength) : RobotPart() {
     setOjectStlFile(ojectStlFile);
     setPartRadius(partRadius);
     setPartLength(partLength);
 }
+
 
 const std::string &Artifact::getOjectStlFile() const {
     return ojectStlFile;
@@ -25,16 +26,8 @@ const Eigen::Vector3d &Artifact::getWorldTranslation() const {
     return worldTranslation;
 }
 
-void Artifact::setWorldTranslation(const Eigen::Vector3d &worldTranslation) {
-    Artifact::worldTranslation = worldTranslation;
-}
-
 const Eigen::Vector3d &Artifact::getWorldRotationRpy() const {
     return worldRotationRpy;
-}
-
-void Artifact::setWorldRotationRpy(const Eigen::Vector3d &worldRotationRpy) {
-    Artifact::worldRotationRpy = worldRotationRpy;
 }
 
 float Artifact::getPartRadius() const {
@@ -53,32 +46,16 @@ void Artifact::setPartLength(float partLength) {
     Artifact::partLength = partLength;
 }
 
-void RobotPart::transformElement(Eigen::Matrix4d transform) {
-    worldTransformation = transform*worldTransformation;
-}
-
 const Eigen::Matrix4d &RobotPart::getWorldTransformation() const {
     return worldTransformation;
-}
-
-void RobotPart::setWorldTransformation(const Eigen::Matrix4d &worldTransformation) {
-    RobotPart::worldTransformation = worldTransformation;
 }
 
 const Eigen::Vector3d &RobotPart::getWorldTranslation() const {
     return worldTranslation;
 }
 
-void RobotPart::setWorldTranslation(const Eigen::Vector3d &worldTranslation) {
-    RobotPart::worldTranslation = worldTranslation;
-}
-
 const Eigen::Vector3d &RobotPart::getWorldRotationRpy() const {
     return worldRotationRpy;
-}
-
-void RobotPart::setWorldRotationRpy(const Eigen::Vector3d &worldRotationRpy) {
-    RobotPart::worldRotationRpy = worldRotationRpy;
 }
 
 void Artifact::computeWorldTransform() {

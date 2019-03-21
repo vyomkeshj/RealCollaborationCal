@@ -25,16 +25,8 @@ const Eigen::Vector3d &Joint::getWorldTranslation() const {
     return worldTranslation;
 }
 
-void Joint::setWorldTranslation(const Eigen::Vector3d &worldTranslation) {
-    Joint::worldTranslation = worldTranslation;
-}
-
 const Eigen::Vector3d &Joint::getWorldRotationRpy() const {
     return worldRotationRpy;
-}
-
-void Joint::setWorldRotationRpy(const Eigen::Vector3d &worldRotationRpy) {
-    Joint::worldRotationRpy = worldRotationRpy;
 }
 
 const Eigen::Vector3d &Joint::getRotationAxis() const {
@@ -62,8 +54,7 @@ void Joint::setJointAngleMin(float jointAngleMin) {
 }
 
 Joint::Joint(const Artifact &parentArtifact, const Artifact &childArtifact, float jointAngleMax, float jointAngleMin,
-             float jointAngle) : parentArtifact(parentArtifact), childArtifact(childArtifact),
-                                 jointAngleMax(jointAngleMax), jointAngleMin(jointAngleMin), jointAngle(jointAngle) {
+             float jointAngle) : parentArtifact(parentArtifact), childArtifact(childArtifact){
 
     this->parentArtifact = parentArtifact;
     this->childArtifact = childArtifact;
