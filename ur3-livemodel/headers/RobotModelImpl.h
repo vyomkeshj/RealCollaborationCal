@@ -10,9 +10,11 @@
 #include "RobotModel.h"
 
 class RobotModelImpl {
-
+public:
     void initializeRobot();
     void rotateAtJoint(int jointIndex, double angle);
+    std::vector<RobotPart*> getPartsInSpace();
+    RobotModelImpl();
 
 private:
     RobotModel currentRobotState;
@@ -23,7 +25,7 @@ private:
     const float wrist2length = 0.08535;
     const float wrist3length = 0.0819;
 
-    std::map<int, RobotPart> jointIndexKeeper;
+    std::map<int, RobotPart*> jointIndexKeeper;
 
 };
 

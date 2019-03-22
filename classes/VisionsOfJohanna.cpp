@@ -17,45 +17,46 @@
 #include <pcl/filters/passthrough.h>
 #include <pcl/segmentation/region_growing.h>
 #include <pcl/segmentation/region_growing_rgb.h>
+#include <ur3-livemodel/headers/Artifact.h>
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
 RealsenseManager manager(1.0f);
 
 VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
-QMainWindow(parent),
-ui(new Ui::VisionsOfJohanna)
-{
-   ui->setupUi(this);
+        QMainWindow(parent),
+        ui(new Ui::VisionsOfJohanna) {
+    ui->setupUi(this);
 
-   viewer.reset (new pcl::visualization::PCLVisualizer ("viewer", false));
-   ui->pclRendererVTKWidget->SetRenderWindow (viewer->getRenderWindow());
-   viewer->setupInteractor (ui->pclRendererVTKWidget->GetInteractor(),
-           ui->pclRendererVTKWidget->GetRenderWindow());
-   ui->pclRendererVTKWidget->update();
-   viewer->addText ("Bumblebee", 0, 0, "text", 0);
-   viewer->addCoordinateSystem(1.0);
+    viewer.reset(new pcl::visualization::PCLVisualizer("viewer", false));
+    ui->pclRendererVTKWidget->SetRenderWindow(viewer->getRenderWindow());
+    viewer->setupInteractor(ui->pclRendererVTKWidget->GetInteractor(),
+                            ui->pclRendererVTKWidget->GetRenderWindow());
+    ui->pclRendererVTKWidget->update();
+    viewer->addText("Bumblebee", 0, 0, "text", 0);
+    viewer->addCoordinateSystem(1.0);
+    keepPointCloudsUpToDate();
+    updateFrameRobotModel();
+    updateDeviceList();
+    setupSliders();
+    connect(ui->enableDisableCameraButton, SIGNAL (clicked()), this, SLOT (enableTogglePressed()));
+    connect(ui->calibrateSelectedCameraButton, SIGNAL (clicked()), this, SLOT(startCalibration()));
+    connect(ui->saveCalibrationButton, SIGNAL (clicked()), this, SLOT(saveCalibration()));
+    connect(ui->cameraListWidget, SIGNAL (itemClicked(QListWidgetItem * )), this,
+            SLOT(updateSelectedDevice(QListWidgetItem * )));
+    connect(ui->rz_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationZSliderChanged(int)));
+    connect(ui->ry_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationYSliderChanged(int)));
+    connect(ui->rx_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationXSliderChanged(int)));
+    connect(ui->x_slider, SIGNAL (valueChanged(int)), this, SLOT(translationXSliderChanged(int)));
+    connect(ui->y_slider, SIGNAL (valueChanged(int)), this, SLOT(translationYSliderChanged(int)));
+    connect(ui->z_slider, SIGNAL (valueChanged(int)), this, SLOT(translationZSliderChanged(int)));
 
-   keepPointCloudsUpToDate();
-   updateDeviceList();
-   setupSliders();
-   connect (ui->enableDisableCameraButton,  SIGNAL (clicked ()), this, SLOT (enableTogglePressed()));
-   connect(ui->calibrateSelectedCameraButton, SIGNAL (clicked()), this, SLOT(startCalibration()));connect(ui->saveCalibrationButton, SIGNAL (clicked()), this, SLOT(saveCalibration()));
-   connect(ui->cameraListWidget, SIGNAL (itemClicked(QListWidgetItem *)), this, SLOT(updateSelectedDevice(QListWidgetItem *)));
-   connect(ui->rz_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationZSliderChanged(int)));
-   connect(ui->ry_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationYSliderChanged(int)));
-   connect(ui->rx_slider, SIGNAL (valueChanged(int)), this, SLOT(rotationXSliderChanged(int)));
-   connect(ui->x_slider, SIGNAL (valueChanged(int)), this, SLOT(translationXSliderChanged(int)));
-   connect(ui->y_slider, SIGNAL (valueChanged(int)), this, SLOT(translationYSliderChanged(int)));
-   connect(ui->z_slider, SIGNAL (valueChanged(int)), this, SLOT(translationZSliderChanged(int)));
-
-   QTimer *pointCloudUpdateTimer= new QTimer(this);
-   pointCloudUpdateTimer->setInterval(2*100);
-   connect(pointCloudUpdateTimer, SIGNAL(timeout()), this, SLOT(repaintPointCloud()));
-   pointCloudUpdateTimer->start();
+    QTimer *pointCloudUpdateTimer = new QTimer(this);
+    pointCloudUpdateTimer->setInterval(2 * 100);
+    connect(pointCloudUpdateTimer, SIGNAL(timeout()), this, SLOT(repaintPointCloud()));
+    pointCloudUpdateTimer->start();
 }
 
-VisionsOfJohanna::~VisionsOfJohanna()
-{
+VisionsOfJohanna::~VisionsOfJohanna() {
     delete ui;
 }
 
@@ -70,62 +71,63 @@ void VisionsOfJohanna::enableTogglePressed() {
     printf("Toggle pressed\n");
     keepPointCloudsUpToDate();
 }
+
 void VisionsOfJohanna::keepPointCloudsUpToDate() {
     manager.grabNewFrames();
     std::vector<string> deviceNames = manager.getConnectedDeviceIds();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr completePc(new pcl::PointCloud<pcl::PointXYZRGB>());
 
-        for (const string &currentDevice: deviceNames) {
-            pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
-                    manager.getPointCloudFromCamera(currentDevice);
-            if(currentDevice == "817612070540") {
-                currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
-                sor.setInputCloud (currentPc);
-                sor.setMeanK (10);
-                sor.setStddevMulThresh (1.5);
-                sor.filter (*currentPc);
+    for (const string &currentDevice: deviceNames) {
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
+                manager.getPointCloudFromCamera(currentDevice);
+        if (currentDevice == "817612070540") {
+            currentPc = CameraFrameTransformer::transformPcloudWithAffine
+                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
+            sor.setInputCloud(currentPc);
+            sor.setMeanK(10);
+            sor.setStddevMulThresh(1.5);
+            sor.filter(*currentPc);
 
 
-                *completePc = *completePc + *currentPc;
-                //continue;
-            } else if (currentDevice == "817612071554") {
-                currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                        (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
-                sor.setInputCloud (currentPc);
-                sor.setMeanK (10);
-                sor.setStddevMulThresh (1.5);
-                sor.filter (*currentPc);
+            *completePc = *completePc + *currentPc;
+            //continue;
+        } else if (currentDevice == "817612071554") {
+            currentPc = CameraFrameTransformer::transformPcloudWithAffine
+                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
+            sor.setInputCloud(currentPc);
+            sor.setMeanK(10);
+            sor.setStddevMulThresh(1.5);
+            sor.filter(*currentPc);
 
-                *completePc = *completePc + *currentPc;
+            *completePc = *completePc + *currentPc;
 
-            } else if (currentDevice == "817612070983") {
-                currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                        (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
-                sor.setInputCloud (currentPc);
-                sor.setMeanK (10);
-                sor.setStddevMulThresh (1.5);
-                sor.filter (*currentPc);
+        } else if (currentDevice == "817612070983") {
+            currentPc = CameraFrameTransformer::transformPcloudWithAffine
+                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
+            sor.setInputCloud(currentPc);
+            sor.setMeanK(10);
+            sor.setStddevMulThresh(1.5);
+            sor.filter(*currentPc);
 
-                *completePc = *completePc + *currentPc;
-            }
-
+            *completePc = *completePc + *currentPc;
         }
-        completePc = getSegementedPc(completePc);
+
+    }
+    //completePc = getSegementedPc(completePc);
     if (!viewer->updatePointCloud(completePc, "net")) {
         viewer->addPointCloud(completePc, "net");
     }
 
-    pcPublisher.setPointCloud(*completePc);
+    //pcPublisher.setPointCloud(*completePc);
 
     //from = CameraFrameTransformer::transformPcloudWithIcp(from, to);
-        //if (!viewer->updatePointCloud(from, "icp")) {
-        //viewer->addPointCloud(from, "icp");
-   //}
+    //if (!viewer->updatePointCloud(from, "icp")) {
+    //viewer->addPointCloud(from, "icp");
+    //}
 
     //viewer->resetCamera();
-        ui->pclRendererVTKWidget->show();
-        ui->pclRendererVTKWidget->update();
+    ui->pclRendererVTKWidget->show();
+    ui->pclRendererVTKWidget->update();
 }
 
 void VisionsOfJohanna::updateDeviceList() {
@@ -160,12 +162,12 @@ void VisionsOfJohanna::startCalibration() {
 
 void VisionsOfJohanna::rotationZSliderChanged(int sliderval) {
     if (isCalibrationEnabled) {
-    transformer.rz = (sliderval) / 100.000;
-    //transform the pointcloud with the new value
-    Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
-    std::string serial = this->selectedDevice->text().toUtf8().constData();
+        transformer.rz = (sliderval) / 100.000;
+        //transform the pointcloud with the new value
+        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        std::string serial = this->selectedDevice->text().toUtf8().constData();
 
-    addOrUpdatepointcloud(serial, netTransform);
+        addOrUpdatepointcloud(serial, netTransform);
     }
 }
 
@@ -220,28 +222,28 @@ void VisionsOfJohanna::translationZSliderChanged(int sliderval) {
     }
 }
 
-pcl::PointCloud <pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getSegementedPc(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcIn) {
-pcl::search::Search<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
-    pcl::IndicesPtr indices (new std::vector <int>);
+pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getSegementedPc(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcIn) {
+    pcl::search::Search<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+    pcl::IndicesPtr indices(new std::vector<int>);
     pcl::PassThrough<pcl::PointXYZRGB> pass;
-    pass.setInputCloud (pcIn);
-    pass.setFilterFieldName ("z");
-    pass.setFilterLimits (0.0, 0.6);
-    pass.filter (*indices);
+    pass.setInputCloud(pcIn);
+    pass.setFilterFieldName("z");
+    pass.setFilterLimits(0.0, 0.6);
+    pass.filter(*indices);
 
     pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;
-    reg.setInputCloud (pcIn);
-    reg.setIndices (indices);
-    reg.setSearchMethod (tree);
-    reg.setDistanceThreshold (0.08);
-    reg.setPointColorThreshold (3);
-    reg.setRegionColorThreshold (5);
-    reg.setMinClusterSize (10000);
+    reg.setInputCloud(pcIn);
+    reg.setIndices(indices);
+    reg.setSearchMethod(tree);
+    reg.setDistanceThreshold(0.08);
+    reg.setPointColorThreshold(3);
+    reg.setRegionColorThreshold(5);
+    reg.setMinClusterSize(10000);
 
-    std::vector <pcl::PointIndices> clusters;
-    reg.extract (clusters);
+    std::vector<pcl::PointIndices> clusters;
+    reg.extract(clusters);
 
-    pcl::PointCloud <pcl::PointXYZRGB>::Ptr colored_cloud = reg.getColoredCloud();
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud = reg.getColoredCloud();
     return colored_cloud;
 }
 
@@ -251,7 +253,7 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
 
     currentPc = CameraFrameTransformer::transformPcloudWithAffine
             (currentPc, transform);
-     if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
+    if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
         viewer->addPointCloud(currentPc, deviceSerial);
     }
     ui->pclRendererVTKWidget->show();
@@ -260,16 +262,33 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
 }
 
 void VisionsOfJohanna::repaintPointCloud() {
-    if(!isCalibrationEnabled)
-    keepPointCloudsUpToDate();
+    if (!isCalibrationEnabled)
+        keepPointCloudsUpToDate();
 }
 
 void VisionsOfJohanna::saveCalibration() {
     isCalibrationEnabled = false;
     std::string serial = this->selectedDevice->text().toUtf8().constData();
     Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
-    std::string matrixFile = "/home/rob-ot/Documents/calibration/Camera70540/"+serial+".dat";
+    std::string matrixFile = "/home/rob-ot/Documents/calibration/Camera70540/" + serial + ".dat";
     EigenFile::write_binary(matrixFile.c_str(), netTransform);
     transformer.reset();
+}
+
+void VisionsOfJohanna::updateFrameRobotModel() {
+
+        std::vector<RobotPart *> partsList = implementedRobotModel.getPartsInSpace();
+        for (auto currentPart: partsList) {
+
+            if (currentPart != nullptr) {
+                Artifact *currentArtifact = dynamic_cast< Artifact*>(currentPart);
+                if (currentArtifact != nullptr) {
+                    Eigen::Matrix4d transform = currentArtifact->getWorldTransformation().matrix();
+                    PolygonMesh mesh = currentArtifact->getTransformedObjectMesh(transform);
+                    viewer->addPolygonMesh(mesh, currentPart->getPartName());
+                }
+            }
+        }
 
 }
+

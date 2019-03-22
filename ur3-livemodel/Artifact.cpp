@@ -3,12 +3,22 @@
 //
 
 #include <ur3-livemodel/headers/RobotPart.h>
+#include <pcl/console/print.h>
+#include <pcl/io/vtk_lib_io.h>
+#include <ur3-livemodel/headers/Artifact.h>
+#include <Eigen/Geometry>
+#include <pcl/common/transforms.h>
+#include <pcl/PCLPointCloud2.h>
 
 #include "ur3-livemodel/headers/Artifact.h"
 
 
 Artifact::Artifact(const std::string &ojectStlFile, float partRadius, float partLength) : RobotPart() {
-    setOjectStlFile(ojectStlFile);
+    this->ojectStlFile = ojectStlFile;
+    if (pcl::io::loadPolygonFileSTL (ojectStlFile, objectMesh) == 0)
+    {
+        PCL_ERROR("Failed to load STL file\n");
+    }
     setPartRadius(partRadius);
     setPartLength(partLength);
 }
@@ -16,18 +26,6 @@ Artifact::Artifact(const std::string &ojectStlFile, float partRadius, float part
 
 const std::string &Artifact::getOjectStlFile() const {
     return ojectStlFile;
-}
-
-void Artifact::setOjectStlFile(const std::string &ojectStlFile) {
-    Artifact::ojectStlFile = ojectStlFile;
-}
-
-const Eigen::Vector3d &Artifact::getWorldTranslation() const {
-    return worldTranslation;
-}
-
-const Eigen::Vector3d &Artifact::getWorldRotationRpy() const {
-    return worldRotationRpy;
 }
 
 float Artifact::getPartRadius() const {
@@ -46,31 +44,17 @@ void Artifact::setPartLength(float partLength) {
     Artifact::partLength = partLength;
 }
 
-const Eigen::Matrix4d &RobotPart::getWorldTransformation() const {
-    return worldTransformation;
+pcl::PolygonMesh Artifact::getTransformedObjectMesh(Eigen::Matrix4d transform) {
+    pcl::PointCloud<pcl::PointXYZ> cloud;
+    pcl::PolygonMesh returnMesh;
+
+    pcl::fromPCLPointCloud2(objectMesh.cloud, cloud);
+    //pcl::transformPointCloud(cloud, cloud, transform);
+    pcl::toPCLPointCloud2(cloud, returnMesh.cloud);
+    return objectMesh;
 }
 
-const Eigen::Vector3d &RobotPart::getWorldTranslation() const {
-    return worldTranslation;
-}
 
-const Eigen::Vector3d &RobotPart::getWorldRotationRpy() const {
-    return worldRotationRpy;
-}
+Artifact::~Artifact() {
 
-void Artifact::computeWorldTransform() {
-    //Use the data to populate the affine transformation Matrix
-    Eigen::Affine3d currentTransformation = Eigen::Affine3d::Identity();
-
-    Eigen::AngleAxisd rollAngle(worldRotationRpy[0], Eigen::Vector3d::UnitX());
-    Eigen::AngleAxisd pitchAngle(worldRotationRpy[1], Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd yawAngle(worldRotationRpy[2], Eigen::Vector3d::UnitZ());
-
-    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-    Eigen::Matrix3d rotationMatrix = q.matrix();
-    currentTransformation.prerotate(rotationMatrix);
-    currentTransformation.translate(getWorldTranslation());
-
-    worldTransformation = currentTransformation.matrix();
 }

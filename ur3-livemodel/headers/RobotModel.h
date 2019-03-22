@@ -17,10 +17,8 @@ public:
     void rotateAtJoint(int jointIndex, float angle);
     const std::vector<RobotPart*> getPartsInSequence();
     void setPartsInSequence(const std::vector<RobotPart *> &partsInSequence);
-
 private:
 std::vector<RobotPart*> partsInSequence;
-
 };
 
 

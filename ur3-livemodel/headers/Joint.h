@@ -11,18 +11,22 @@
 class Joint : public RobotPart{
 
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
     Joint();
 
-    Joint(const Artifact &parentArtifact, const Artifact &childArtifact, float jointAngleMax, float jointAngleMin,
+    virtual ~Joint();
+
+    Joint(Artifact* parentArtifact, Artifact* childArtifact, float jointAngleMax, float jointAngleMin,
           float jointAngle);
 
-    const Artifact &getParentArtifact() const;
+    Artifact* getParentArtifact();
 
-    void setParentArtifact(const Artifact &parentArtifact);
+    void setParentArtifact(Artifact* parentArtifact);
 
-    const Artifact &getChildArtifact() const;
+    Artifact* getChildArtifact();
 
-    void setChildArtifact(const Artifact &childArtifact);
+    void setChildArtifact(Artifact* childArtifact);
 
     const Eigen::Vector3d &getWorldTranslation() const;
 
@@ -41,13 +45,11 @@ public:
 
     void setJointAngleMin(float jointAngleMin);
 
-    void computeWorldTransformation();
-
     Eigen::Matrix4d getTransformationForSubsequentParts(double rotationAngle) const;
 
 private:
-    Artifact parentArtifact;
-    Artifact childArtifact;
+    Artifact* parentArtifact;
+    Artifact* childArtifact;
 
     Eigen::Vector3d rotationAxis;
     float jointAngleMax;

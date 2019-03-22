@@ -18,6 +18,7 @@
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <QtWidgets/QListWidget>
+#include <ur3-livemodel/headers/RobotModelImpl.h>
 
 #include "ur3-livemodel/headers/PointCloudROSPublisher.h"
 
@@ -48,6 +49,7 @@ public Q_SLOTS:
 
     void updateSelectedDevice(QListWidgetItem *item);
     void repaintPointCloud();
+    void updateFrameRobotModel();
 private:
     struct afterTransformer{
         double rx;
@@ -84,7 +86,7 @@ private:
     pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
     Eigen::Matrix4d currentTransformer;
     QListWidgetItem *selectedDevice;
-
+    RobotModelImpl implementedRobotModel;
     void keepPointCloudsUpToDate();
     void updateDeviceList();
     void setupSliders();
