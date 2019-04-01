@@ -7,7 +7,7 @@
 #include <headers/RealsenseManager.h>
 
 #include "visionsofjohanna.hpp"
-#include <QVTKWidget2.h>
+#include <QVTKWidget.h>
 #include <headers/CameraTagInBaseCoordinates.h>
 #include "ui_visionsofjohanna.h"
 #include <pcl/io/ply_io.h>
@@ -34,6 +34,7 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     ui->pclRendererVTKWidget->update();
     viewer->addText("Bumblebee", 0, 0, "text", 0);
     viewer->addCoordinateSystem(1.0);
+
     keepPointCloudsUpToDate();
     updateFrameRobotModel();
     updateDeviceList();
@@ -277,15 +278,18 @@ void VisionsOfJohanna::saveCalibration() {
 
 void VisionsOfJohanna::updateFrameRobotModel() {
 
-        std::vector<RobotPart *> partsList = implementedRobotModel.getPartsInSpace();
+        std::vector<RobotPart *> partsList = *implementedRobotModel.getPartsInSpace();
         for (auto currentPart: partsList) {
 
             if (currentPart != nullptr) {
                 Artifact *currentArtifact = dynamic_cast< Artifact*>(currentPart);
                 if (currentArtifact != nullptr) {
                     Eigen::Matrix4d transform = currentArtifact->getWorldTransformation().matrix();
-                    PolygonMesh mesh = currentArtifact->getTransformedObjectMesh(transform);
-                    viewer->addPolygonMesh(mesh, currentPart->getPartName());
+                    //PolygonMesh mesh = currentArtifact->getTransformedObjectMesh(transform);
+                    if(!viewer->addModelFromPolyData(currentArtifact->getPolyMesh(),currentArtifact->getVTKtransform(), currentPart->getPartName())) {
+                        viewer->removePolygonMesh(currentPart->getPartName());
+                        viewer->addModelFromPolyData(currentArtifact->getPolyMesh(),currentArtifact->getVTKtransform(), currentPart->getPartName());
+                    }
                 }
             }
         }

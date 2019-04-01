@@ -15,24 +15,29 @@ void RobotModel::addPart(RobotPart* newPart) {
 
 void RobotModel::rotateAtJoint(int jointIndex, float angle) {
 //Rotates all the artifacts and joints starting from jointIndex with the angle specified
-    RobotPart* part = getPartsInSequence()[jointIndex];
-    const Joint* j = static_cast<const Joint*>(part);
-    Eigen::Matrix4d transform = j->getTransformationForSubsequentParts(angle);
+    RobotPart *part = partsInSequence.at(jointIndex);
+    auto *j = dynamic_cast< Joint *>(part);
+    if (j != nullptr) {
+        Eigen::Matrix4d transform = j->getTransformationForSubsequentParts(angle);
 
-    for(std::size_t i = jointIndex; i<getPartsInSequence().size(); i++) {
-        //TODO: test this, updates all the parts downstream
-        RobotPart* part = getPartsInSequence()[i]; //gets reference to the part at the index
-        part->transformElement(transform); //transforms rest of the artifacts
+        for (std::size_t i = jointIndex; i < getPartsInSequence()->size(); i++) {
+            //TODO: test this, updates all the parts downstream, optimze
+            RobotPart *part = partsInSequence.at(i); //gets reference to the part at the index
+            auto artifact = dynamic_cast<Artifact *>(part);
+            if(artifact != nullptr) {
+                artifact->transformElement(transform); //transforms rest of the joints
+                partsInSequence.at(jointIndex) = artifact;
+            }
+        }
     }
-
 }
 
 
 
 void RobotModel::setPartsInSequence(const std::vector<RobotPart *> &partsInSequence) {
-    RobotModel::partsInSequence = partsInSequence;
+    this->partsInSequence = partsInSequence;
 }
 
-const std::vector<RobotPart*> RobotModel::getPartsInSequence() {
-    return partsInSequence;
+std::vector<RobotPart*>* RobotModel::getPartsInSequence() {
+    return &partsInSequence;
 }

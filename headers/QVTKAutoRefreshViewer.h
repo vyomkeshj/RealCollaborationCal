@@ -6,14 +6,21 @@
 #define REALCOLLABORATIONCAL_QVTKAUTOREFRESHVIEWER_H
 
 
-#include <pcl/impl/point_types.hpp>
-#include <pcl/point_cloud.h>
-#include <pcl/visualization/pcl_visualizer.h>
-#include <QVTKOpenGLNativeWidget.h>
+#define vtkRenderingCore_AUTOINIT4(vtkInteractionStyle,vtkRenderingFreeType,vtkRenderingFreeTypeOpenGL,tkRenderingOpenGL)
+#define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
 
-class QVTKAutoRefreshViewer : QVTKOpenGLNativeWidget {
+#include <QVTKWidget.h>
+#include <vtkRenderWindow.h>
+
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+#include <pcl/visualization/pcl_visualizer.h>
+
+class QVTKAutoRefreshViewer : QVTKWidget {
+    QOBJECT
 public:
-    QVTKAutoRefreshViewer():QVTKOpenGLNativeWidget() {
+    QVTKAutoRefreshViewer(QWidget *parent)
+    :QVTKWidget(parent) {
         initializeWidgetInternal();
     }
     public slots:

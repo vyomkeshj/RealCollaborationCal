@@ -3,11 +3,14 @@
 //
 
 #include <ur3-livemodel/headers/RobotPart.h>
+#include <ur3-livemodel/headers/Joint.h>
 
 #include "headers/RobotPart.h"
 
 void RobotPart::transformElement(Eigen::Matrix4d transform) {
-    setWorldTransformation(Eigen::Affine3d(transform*(getWorldTransformation().matrix())));
+    Eigen::Affine3d newTransform = Eigen::Affine3d::Identity();
+    newTransform.matrix() = transform*(worldTransformation.matrix());
+    setWorldTransformation(newTransform);
 }
 
 void RobotPart::setWorldTransformation(Eigen::Affine3d worldTransformation) {
@@ -22,10 +25,6 @@ void RobotPart::setWorldTranslation(const Eigen::Vector3d &worldTranslation) {
 
 void RobotPart::setWorldRotationRpy(const Eigen::Vector3d &worldRotationRpy) {
     this->worldRotationRpy = worldRotationRpy;
-}
-
-RobotPart::RobotPart() {
-
 }
 
 RobotPart::~RobotPart() {
@@ -52,16 +51,53 @@ const Eigen::Vector3d &RobotPart::getWorldRotationRpy() const {
     return worldRotationRpy;
 }
 
+
+//TODO: this should set the artifact's transform to artifact+prev joint's transform, not suitable for joint
 void RobotPart::computeWorldTransformation() {
     Eigen::Affine3d transformer = Eigen::Affine3d::Identity();
-    Eigen::AngleAxisd rollAngle(worldRotationRpy[2], Eigen::Vector3d::UnitZ());
-    Eigen::AngleAxisd yawAngle(worldRotationRpy[1], Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd pitchAngle(worldRotationRpy[0], Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd rollAngle(worldRotationRpy[2], Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd pitchAngle(worldRotationRpy[1], Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yawAngle(worldRotationRpy[0], Eigen::Vector3d::UnitZ());
 
-    Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+    Eigen::Quaternion<double> q = rollAngle * pitchAngle * yawAngle;
     Eigen::Matrix3d rotationMatrix = q.matrix();
     transformer.prerotate(rotationMatrix);
-    transformer.translate(getWorldTranslation());
+    transformer.pretranslate(getWorldTranslation());
+
+
+    //TODO: get the previous joint for current artifact and transform again with the joint's transform
+    if(indexInParentVector-1 >= 0) {
+        RobotPart *prevPart = partsList->at(getIndexInParentVector() - 1);
+        auto *previousJoint = dynamic_cast<Joint*>(prevPart);
+
+        if (previousJoint != nullptr) {
+            Eigen::Matrix4d completeTransformation =
+            previousJoint->getWorldTransformation().matrix()*transformer.matrix();
+            //setWorldTransformationMatrix(completeTransformation);
+            transformer.matrix() = completeTransformation;
+        }
+    }
     setWorldTransformation(transformer);
+
 }
 
+RobotPart::RobotPart(std::vector<RobotPart *> *partsList, int indexInParent) {
+    this->partsList = partsList;
+    this->indexInParentVector = indexInParent;
+}
+
+int RobotPart::getIndexInParentVector() const {
+    return indexInParentVector;
+}
+
+void RobotPart::setIndexInParentVector(int indexInParentVector) {
+    this->indexInParentVector = indexInParentVector;
+}
+
+const Eigen::Matrix4d &RobotPart::getWorldTransformationMatrix() const {
+    return worldTransformationMatrix;
+}
+
+void RobotPart::setWorldTransformationMatrix(const Eigen::Matrix4d &worldTransformationMatrix) {
+    RobotPart::worldTransformationMatrix = worldTransformationMatrix;
+}

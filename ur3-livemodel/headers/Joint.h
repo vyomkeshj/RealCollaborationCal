@@ -7,18 +7,19 @@
 
 
 #include "Artifact.h"
+#include <Eigen/Dense>
 
 class Joint : public RobotPart{
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    Joint();
 
-    virtual ~Joint();
 
-    Joint(Artifact* parentArtifact, Artifact* childArtifact, float jointAngleMax, float jointAngleMin,
-          float jointAngle);
+    Joint(Artifact* parentArtifact, Artifact* childArtifact,
+            std::vector<RobotPart*>* listReference,
+             float jointAngleMin, float jointAngleMax,
+            float jointAngle, int indexInParent);
 
     Artifact* getParentArtifact();
 
@@ -27,11 +28,6 @@ public:
     Artifact* getChildArtifact();
 
     void setChildArtifact(Artifact* childArtifact);
-
-    const Eigen::Vector3d &getWorldTranslation() const;
-
-
-    const Eigen::Vector3d &getWorldRotationRpy() const;
 
     const Eigen::Vector3d &getRotationAxis() const;
 
@@ -46,6 +42,8 @@ public:
     void setJointAngleMin(float jointAngleMin);
 
     Eigen::Matrix4d getTransformationForSubsequentParts(double rotationAngle) const;
+
+    virtual ~Joint();
 
 private:
     Artifact* parentArtifact;

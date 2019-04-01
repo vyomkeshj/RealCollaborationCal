@@ -25,13 +25,11 @@ add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
         classes/CameraTagInBaseCoordinates.cpp
         headers/CameraTagInBaseCoordinates.h headers/visionsofjohanna.hpp
         headers/RealsenseManager.h headers/RealsenseDeviceProvider.h
-        headers/EigenFileExtension.h ur3-livemodel/PointCloudROSPublisher.cpp
-        ur3-livemodel/headers/PointCloudROSPublisher.h ur3-livemodel/Artifact.cpp ur3-livemodel/headers/Artifact.h ur3-livemodel/Joint.cpp ur3-livemodel/headers/Joint.h ur3-livemodel/RobotModel.cpp ur3-livemodel/headers/RobotModel.h ur3-livemodel/headers/RobotPart.h ur3-livemodel/RobotModelImpl.cpp ur3-livemodel/headers/RobotModelImpl.h ur3-livemodel/RobotPart.cpp)
-
-
-
-
-
+        headers/EigenFileExtension.h
+         ur3-livemodel/Artifact.cpp
+        ur3-livemodel/headers/Artifact.h ur3-livemodel/Joint.cpp ur3-livemodel/headers/Joint.h ur3-livemodel/RobotModel.cpp
+        ur3-livemodel/headers/RobotModel.h ur3-livemodel/headers/RobotPart.h ur3-livemodel/RobotModelImpl.cpp
+        ur3-livemodel/headers/RobotModelImpl.h ur3-livemodel/RobotPart.cpp classes/CobotFilter.cpp headers/CobotFilter.h)
 
 #[[
 
@@ -45,13 +43,15 @@ add_executable(RealCollaborationCal main.cpp
 
 
 
-find_package( VTK 8.1 REQUIRED)
+find_package(VTK 8.1 REQUIRED)
 
 find_package(realsense2 REQUIRED)
 
+set(Boost_USE_STATIC_LIBS   ON)
+find_package(Boost REQUIRED)
 
 find_package(OpenCV 4 REQUIRED)
-find_package( PCL 1.9.1 REQUIRED)
+find_package(PCL 1.9.1 REQUIRED)
 
 # Find the QtWidgets library
 find_package(Qt5 REQUIRED Widgets)
@@ -68,7 +68,7 @@ target_link_libraries(RealCollaborationCal ${OpenCV_LIBS})
 target_include_directories(RealCollaborationCal PRIVATE headers qt_ui)
 target_sources(RealCollaborationCal PRIVATE classes)
 
-
+target_link_libraries(RealCollaborationCal ${Boost_LIBRARIES})
 if( PCL_FOUND )
     # Additional Include Directories
     include_directories( ${PCL_INCLUDE_DIRS} )
@@ -86,13 +86,4 @@ endif()
 
 target_link_libraries(RealCollaborationCal Qt5::Widgets Qt5::Core)
 
-find_package(catkin REQUIRED COMPONENTS
-        roscpp
-        rosconsole
-        std_msgs
-        geometry_msgs
-        message_generation
-        )
-include_directories(${catkin_INCLUDE_DIRS})
 
-target_link_libraries(RealCollaborationCal ${catkin_LIBRARIES})

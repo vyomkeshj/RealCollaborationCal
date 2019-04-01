@@ -3,9 +3,18 @@
 //
 
 #include <Eigen/Dense>
-#include <ur3-livemodel/headers/Joint.h>
 
 #include "ur3-livemodel/headers/Joint.h"
+
+Joint::Joint(Artifact *parentArtifact, Artifact *childArtifact, std::vector<RobotPart *> *partsList,
+              float jointAngleMin , float jointAngleMax, float jointAngle, int indexInParent)
+             : RobotPart(partsList, indexInParent){
+    this->parentArtifact = parentArtifact;
+    this->childArtifact = childArtifact;
+    this->jointAngleMax = jointAngleMax;
+    this->jointAngleMin = jointAngleMin;
+    this->jointAngle = jointAngle;
+}
 
  Artifact* Joint::getParentArtifact()  {
     return parentArtifact;
@@ -47,17 +56,6 @@ void Joint::setJointAngleMin(float jointAngleMin) {
     Joint::jointAngleMin = jointAngleMin;
 }
 
-Joint::Joint(Artifact* parentArtifact, Artifact* childArtifact, float jointAngleMax, float jointAngleMin,
-             float jointAngle) {
-
-    this->parentArtifact = parentArtifact;
-    this->childArtifact = childArtifact;
-    this->jointAngleMax = jointAngleMax;
-    this->jointAngleMin = jointAngleMin;
-
-}
-
-
 /*
  * Gets the transformation for every subsequent part depending on the angle
  * and the axis specified
@@ -65,14 +63,8 @@ Joint::Joint(Artifact* parentArtifact, Artifact* childArtifact, float jointAngle
 Eigen::Matrix4d Joint::getTransformationForSubsequentParts(double angle) const {
     Eigen::Affine3d transformation = Eigen::Affine3d::Identity();
     if(angle<=jointAngleMax && angle >= jointAngleMin) {
-
-        angle = angle - jointAngle;  //FIXME: calculate the angle to be rotated
-
-        Eigen::Matrix3d mat;
-        mat = Eigen::AngleAxisd(angle, rotationAxis);
-        transformation.prerotate(mat);
-    } else {
-
+        angle = angle - jointAngle;  //FIXME: the rotation axis and anchor point change
+        transformation = Eigen::Translation3d(worldTranslation) * Eigen::AngleAxisd(angle, rotationAxis) * Eigen::Translation3d(-worldTranslation);
     }
     return transformation.matrix();
 }
@@ -80,3 +72,4 @@ Eigen::Matrix4d Joint::getTransformationForSubsequentParts(double angle) const {
 Joint::~Joint() {
 
 }
+

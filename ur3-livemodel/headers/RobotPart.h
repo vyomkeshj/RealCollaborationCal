@@ -10,7 +10,8 @@
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    RobotPart();
+    RobotPart(std::vector<RobotPart*>* partsList, int index);
+
     void transformElement(Eigen::Matrix4d transform);
     const Eigen::Affine3d &getWorldTransformation() const;
     void setWorldTransformation(Eigen::Affine3d worldTransformation);
@@ -31,12 +32,24 @@ public:
 
      virtual ~RobotPart();
 
+     int getIndexInParentVector() const;
+
+     void setIndexInParentVector(int indexInParentVector);
+
+
  protected:
     Eigen::Vector3d worldTranslation;
     Eigen::Vector3d worldRotationRpy;
     Eigen::Affine3d worldTransformation;
-    std::string partName;
+    Eigen::Matrix4d worldTransformationMatrix;
+ public:
+     const Eigen::Matrix4d &getWorldTransformationMatrix() const;
+
+     void setWorldTransformationMatrix(const Eigen::Matrix4d &worldTransformationMatrix);
+
+ protected:
+     std::string partName;
+    std::vector<RobotPart*>* partsList;
+    int indexInParentVector = 0;
  };
-
-
 #endif //REALCOLLABORATIONCAL_ROBOTPART_H

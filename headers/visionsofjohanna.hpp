@@ -20,7 +20,6 @@
 #include <QtWidgets/QListWidget>
 #include <ur3-livemodel/headers/RobotModelImpl.h>
 
-#include "ur3-livemodel/headers/PointCloudROSPublisher.h"
 
 namespace Ui {
     class VisionsOfJohanna;
@@ -80,7 +79,6 @@ private:
         }
     } transformer;
     Ui::VisionsOfJohanna *ui;
-    PointCloudROSPublisher pcPublisher;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(int camera);
     bool isCalibrationEnabled = false;
     pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;

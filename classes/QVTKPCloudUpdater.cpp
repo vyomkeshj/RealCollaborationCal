@@ -1,9 +1,11 @@
 //
 // Created by rob-ot on 31.1.19.
 //
+
+#include <headers/RealsenseManager.h>
+
 #include <QObject>
 #include "QVTKPCloudUpdater.h"
-#include <headers/RealsenseManager.h>
 
 
 std::tuple<pcl::PointCloud<pcl::PointXYZRGB>::Ptr, std::string> QVTKPCloudUpdater::emitNewPointcloud() {
