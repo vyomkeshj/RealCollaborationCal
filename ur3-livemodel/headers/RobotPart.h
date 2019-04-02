@@ -5,8 +5,9 @@
 #ifndef REALCOLLABORATIONCAL_ROBOTPART_H
 #define REALCOLLABORATIONCAL_ROBOTPART_H
 #include <Eigen/Dense>
+#include <vector>
 
- class RobotPart {
+class RobotPart {
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
