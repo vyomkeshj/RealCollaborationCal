@@ -12,6 +12,14 @@
 
 class RobotModel {
 public:
+
+    double prevAngle1 = -PI;
+    double prevAngle2 = -PI/2;
+    double prevAngle3 = 0.0;
+    double prevAngle4 = -PI/2;
+    double prevAngle5 = 0;
+
+
     RobotModel();
 
     void addPart(RobotPart *newPart);
@@ -26,11 +34,13 @@ public:
 
 private:
     std::vector<RobotPart *> partsInSequence;
-    double prevAngle1 = -PI;
-    double prevAngle2 = -PI/2;
-    double prevAngle3 = 0.0;
-    double prevAngle4 = -PI/2;
-    double prevAngle5 = 0;
+
+    double radianToLeastRotation(double angle) {
+        angle = fmod(angle,2*PI);
+        if (angle < 0)
+            angle += 360;
+        return angle;
+    }
 };
 
 

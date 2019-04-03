@@ -35,6 +35,7 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     viewer->addText("Bumblebee", 0, 0, "text", 0);
     viewer->addCoordinateSystem(1.0);
     jointAnglesListener = new RobotJointAngles("192.168.1.101");  //FIXME: add real ip
+    jointAnglesListener->initializeModbus();
     keepPointCloudsUpToDate();
     updateFrameRobotModel();
     updateDeviceList();
@@ -106,6 +107,7 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
     if (!viewer->updatePointCloud(completePc, "net")) {
         viewer->addPointCloud(completePc, "net");
     }
+    updateFrameRobotModel();
 
     //pcPublisher.setPointCloud(*completePc);
 
@@ -272,18 +274,15 @@ void VisionsOfJohanna::updateFrameRobotModel() {
     implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
             jointStat.wrist1, jointStat.wrist2);
 
+    viewer->removeAllShapes();
         std::vector<RobotPart *> partsList = *implementedRobotModel.getPartsInSpace();
         for (auto currentPart: partsList) {
-
             if (currentPart != nullptr) {
                 Artifact *currentArtifact = dynamic_cast< Artifact*>(currentPart);
                 if (currentArtifact != nullptr) {
                     Eigen::Matrix4d transform = currentArtifact->getWorldTransformation().matrix();
-                    //PolygonMesh mesh = currentArtifact->getTransformedObjectMesh(transform);
-                    if(!viewer->addModelFromPolyData(currentArtifact->getPolyMesh(),currentArtifact->getVTKtransform(), currentPart->getPartName())) {
-                        viewer->removePolygonMesh(currentPart->getPartName());
-                        viewer->addModelFromPolyData(currentArtifact->getPolyMesh(),currentArtifact->getVTKtransform(), currentPart->getPartName());
-                    }
+                    viewer->addModelFromPolyData(currentArtifact->getPolyMesh(),currentArtifact->getVTKtransform(),
+                            currentPart->getPartName());
                 }
             }
         }

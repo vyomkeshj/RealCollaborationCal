@@ -49,9 +49,16 @@ std::vector<RobotPart*>* RobotModel::getPartsInSequence() {
 }
 
 void RobotModel::setJointAngles(double angle1, double angle2, double angle3, double angle4, double angle5) {
-    rotateAtJoint(1, angle1-prevAngle1);
-    rotateAtJoint(3, angle2-prevAngle2);
-    rotateAtJoint(5, angle3-prevAngle3);
-    rotateAtJoint(7, angle4-prevAngle4);
-    rotateAtJoint(9, angle5-prevAngle5);
+    rotateAtJoint(1, angle1);
+    rotateAtJoint(3, angle2);
+    rotateAtJoint(5, angle3);
+    rotateAtJoint(7, angle4);
+    rotateAtJoint(9, angle5);
+
+    prevAngle1 = angle1;
+    prevAngle2 = angle2;
+    prevAngle3 = angle3;
+    prevAngle4 = angle4;
+    prevAngle5 = angle5;
 }
+

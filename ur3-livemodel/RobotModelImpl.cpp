@@ -141,7 +141,6 @@ void RobotModelImpl::initializeRobot() {
     wrist3Joint->computeWorldTransformation();
     wrist3Link->computeWorldTransformation();
 
-    currentRobotState.setJointAngles(0, 0, 0, 0, 0);
 
 }
 
@@ -150,6 +149,12 @@ std::vector<RobotPart*>* RobotModelImpl::getPartsInSpace() {
 }
 
 void RobotModelImpl::setJointAngles(double angle1, double angle2, double angle3, double angle4, double angle5) {
+    currentRobotState.setJointAngles(-currentRobotState.prevAngle1,
+                                     -currentRobotState.prevAngle2,
+                                     -currentRobotState.prevAngle3,
+                                     -currentRobotState.prevAngle4,
+                                     -currentRobotState.prevAngle5);
+
     currentRobotState.setJointAngles(angle1, angle2, angle3, angle4, angle5);
 }
 
