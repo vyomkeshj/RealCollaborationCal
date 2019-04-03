@@ -5,7 +5,7 @@
 #ifndef REALCOLLABORATIONCAL_ROBOTMODEL_H
 #define REALCOLLABORATIONCAL_ROBOTMODEL_H
 
-
+#define PI 3.14
 #include <string>
 #include <vector>
 #include "RobotPart.h"
@@ -13,12 +13,24 @@
 class RobotModel {
 public:
     RobotModel();
-    void addPart(RobotPart* newPart);
+
+    void addPart(RobotPart *newPart);
+
     void rotateAtJoint(int jointIndex, float angle);
-    std::vector<RobotPart*>* getPartsInSequence();
-    void setPartsInSequence(const std::vector<RobotPart*> &partsInSequence);
+
+    std::vector<RobotPart *> *getPartsInSequence();
+
+    void setPartsInSequence(const std::vector<RobotPart *> &partsInSequence);
+
+    void setJointAngles(double angle1, double angle2, double angle3, double angle4, double angle5);
+
 private:
-std::vector<RobotPart*> partsInSequence;
+    std::vector<RobotPart *> partsInSequence;
+    double prevAngle1 = -PI;
+    double prevAngle2 = -PI/2;
+    double prevAngle3 = 0.0;
+    double prevAngle4 = -PI/2;
+    double prevAngle5 = 0;
 };
 
 

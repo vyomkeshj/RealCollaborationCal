@@ -12,7 +12,7 @@ set(CMAKE_AUTORCC ON) # Resource files
 set(CMAKE_AUTOUIC ON) # UI files
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(SOURCES headers/modbus.h headers/CameraTCPOrientation.h classes/CameraTCPOrientation.cpp
+set(SOURCES headers/modbus.h headers/RobotJointAngles.h classes/RobotJointAngles.cpp
         headers/modbus_exception.h classes/modbus.cpp headers/RealsenseManager.h
         headers/RealsensePoseEstimation.h
         headers/QVTKPCloudUpdater.h )
@@ -21,7 +21,7 @@ set(SOURCES headers/modbus.h headers/CameraTCPOrientation.h classes/CameraTCPOri
 
 
 add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
-        classes/CameraTCPOrientation.cpp classes/modbus.cpp
+        classes/RobotJointAngles.cpp classes/modbus.cpp
         classes/CameraTagInBaseCoordinates.cpp
         headers/CameraTagInBaseCoordinates.h headers/visionsofjohanna.hpp
         headers/RealsenseManager.h headers/RealsenseDeviceProvider.h
@@ -34,7 +34,7 @@ add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
 #[[
 
 add_executable(RealCollaborationCal main.cpp
-        classes/CameraTCPOrientation.cpp classes/modbus.cpp
+        classes/RobotJointAngles.cpp classes/modbus.cpp
         classes/CameraTagInBaseCoordinates.cpp
         headers/CameraTagInBaseCoordinates.h
         headers/RealsenseManager.h headers/RealsenseDeviceProvider.h headers/EigenFileExtension.h)

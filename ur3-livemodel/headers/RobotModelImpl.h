@@ -12,10 +12,9 @@
 class RobotModelImpl {
 public:
     void initializeRobot();
-    void rotateAtJoint(int jointIndex, double angle);
+    void setJointAngles(double angle1, double angle2, double angle3, double angle4, double angle5);
     std::vector<RobotPart*>* getPartsInSpace();
     RobotModelImpl();
-
 private:
     RobotModel currentRobotState;
     const float shoulderHeight = 0.1519;

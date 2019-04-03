@@ -41,7 +41,7 @@ public:
 
     void setJointAngleMin(float jointAngleMin);
 
-    Eigen::Matrix4d getTransformationForSubsequentParts(double rotationAngle) const;
+    Eigen::Affine3d getTransformationForSubsequentParts(double rotationAngle) const;
 
     virtual ~Joint();
 

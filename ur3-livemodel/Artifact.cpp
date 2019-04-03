@@ -19,6 +19,10 @@ Artifact::Artifact(const std::string &ojectStlFile, std::vector<RobotPart*>* par
 : RobotPart(parentListRef, indexInParent) {
     this->ojectStlFile = ojectStlFile;
 
+    if (pcl::io::loadPolygonFileSTL (ojectStlFile, polygons) == 0)
+    {
+        PCL_ERROR("Failed to load STL file as polygons\n");
+    }
 
     //TODO: try to load the poly data
 
@@ -109,5 +113,9 @@ void Artifact::setPolyMesh(const vtkSmartPointer<vtkPolyData> &polyMesh) {
 }
 
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr Artifact::getArtifactPc() {
-    return pcl::PointCloud<pcl::PointXYZRGB>::Ptr();
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr artifactPc(new pcl::PointCloud<pcl::PointXYZRGB>());
+    pcl::fromPCLPointCloud2(polygons.cloud, *artifactPc);
+    pcl::transformPointCloud(*artifactPc, *artifactPc, worldTransformation.matrix());
+
+    return artifactPc;
 }

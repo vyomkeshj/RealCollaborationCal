@@ -34,7 +34,7 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     ui->pclRendererVTKWidget->update();
     viewer->addText("Bumblebee", 0, 0, "text", 0);
     viewer->addCoordinateSystem(1.0);
-
+    jointAnglesListener = new RobotJointAngles("192.168.1.101");  //FIXME: add real ip
     keepPointCloudsUpToDate();
     updateFrameRobotModel();
     updateDeviceList();
@@ -277,6 +277,9 @@ void VisionsOfJohanna::saveCalibration() {
 }
 
 void VisionsOfJohanna::updateFrameRobotModel() {
+    RobotJointAngles::Joints jointStat = jointAnglesListener->getJointAngles();
+    implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
+            jointStat.wrist1, jointStat.wrist2);
 
         std::vector<RobotPart *> partsList = *implementedRobotModel.getPartsInSpace();
         for (auto currentPart: partsList) {

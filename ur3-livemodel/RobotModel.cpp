@@ -18,15 +18,21 @@ void RobotModel::rotateAtJoint(int jointIndex, float angle) {
     RobotPart *part = partsInSequence.at(jointIndex);
     auto *j = dynamic_cast< Joint *>(part);
     if (j != nullptr) {
-        Eigen::Matrix4d transform = j->getTransformationForSubsequentParts(angle);
+        Eigen::Affine3d transform = j->getTransformationForSubsequentParts(angle);
 
         for (std::size_t i = jointIndex; i < getPartsInSequence()->size(); i++) {
-            //TODO: test this, updates all the parts downstream, optimze
             RobotPart *part = partsInSequence.at(i); //gets reference to the part at the index
             auto artifact = dynamic_cast<Artifact *>(part);
             if(artifact != nullptr) {
-                artifact->transformElement(transform); //transforms rest of the joints
-                partsInSequence.at(jointIndex) = artifact;
+                artifact->transformElement(transform.matrix()); //transforms rest of the joints
+                partsInSequence.at(i) = artifact;
+            } else {
+                auto joint = dynamic_cast<Joint *>(part);
+                Eigen::Vector3d newState = transform*joint->getWorldTranslation();
+                joint->setWorldTranslation(newState);
+
+                newState = transform.rotation()*joint->getRotationAxis();
+                joint->setRotationAxis(newState);
             }
         }
     }
@@ -40,4 +46,12 @@ void RobotModel::setPartsInSequence(const std::vector<RobotPart *> &partsInSeque
 
 std::vector<RobotPart*>* RobotModel::getPartsInSequence() {
     return &partsInSequence;
+}
+
+void RobotModel::setJointAngles(double angle1, double angle2, double angle3, double angle4, double angle5) {
+    rotateAtJoint(1, angle1-prevAngle1);
+    rotateAtJoint(3, angle2-prevAngle2);
+    rotateAtJoint(5, angle3-prevAngle3);
+    rotateAtJoint(7, angle4-prevAngle4);
+    rotateAtJoint(9, angle5-prevAngle5);
 }

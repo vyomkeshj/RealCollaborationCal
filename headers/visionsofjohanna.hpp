@@ -19,7 +19,7 @@
 #include <pcl/visualization/pcl_visualizer.h>
 #include <QtWidgets/QListWidget>
 #include <ur3-livemodel/headers/RobotModelImpl.h>
-
+#include "RobotJointAngles.h"
 
 namespace Ui {
     class VisionsOfJohanna;
@@ -90,6 +90,8 @@ private:
     void setupSliders();
     void addOrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);
     pcl::PointCloud <pcl::PointXYZRGB>::Ptr getSegementedPc(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcIn);
+
+    RobotJointAngles *jointAnglesListener;
 };
 
 #endif

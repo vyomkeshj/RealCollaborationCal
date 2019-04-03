@@ -141,21 +141,20 @@ void RobotModelImpl::initializeRobot() {
     wrist3Joint->computeWorldTransformation();
     wrist3Link->computeWorldTransformation();
 
-    currentRobotState.rotateAtJoint(1, PI/3);
+    currentRobotState.setJointAngles(0, 0, 0, 0, 0);
 
-    //currentRobotState.rotateAtJoint(1, -PI/3);
 }
-
-
- void RobotModelImpl::rotateAtJoint(int jointIndex, double angle) {
-     currentRobotState.rotateAtJoint(jointIndex, angle);
- }
 
 std::vector<RobotPart*>* RobotModelImpl::getPartsInSpace() {
     return currentRobotState.getPartsInSequence();
 }
 
+void RobotModelImpl::setJointAngles(double angle1, double angle2, double angle3, double angle4, double angle5) {
+    currentRobotState.setJointAngles(angle1, angle2, angle3, angle4, angle5);
+}
+
 /*
+
 void RobotModelImpl::filterRobotFromPointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr inputPc) {
     float filterDist = 0.07;
     pcl::KdTreeFLANN<pcl::PointXYZRGB> kdtree;
@@ -165,18 +164,12 @@ void RobotModelImpl::filterRobotFromPointCloud(pcl::PointCloud<pcl::PointXYZRGB>
         RobotPart* part = getPartsInSpace()->at(i);
         auto artifact = dynamic_cast<Artifact *>(part);
         if(artifact != nullptr) {
-
-            PolygonMesh inMesh = part-
-            pcl::PointCloud<pcl::PointXYZ> cloud;
-            pcl::fromPCLPointCloud2(inMesh->cloud, cloud);
-            pcl::transformPointCloud(cloud, cloud, transform);
-            pcl::toPCLPointCloud2(cloud, inMesh->cloud);
-
-
-
+            pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPart = artifact->getArtifactPc();
+            *completeRobot = *completeRobot+ *currentPart;
         }
     }
 }
 */
+
 
 

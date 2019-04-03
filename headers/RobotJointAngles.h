@@ -9,22 +9,23 @@
 #include <string.h>
 #include <modbus.h>
 
-class CameraTCPOrientation {
+class RobotJointAngles {
 public:
-    struct TCP {
-        float x;
-        float y;
-        float z;
+    struct Joints {
+        double base ;
+        double shoulder;
+        double elbow;
 
-        float rx;
-        float ry;
-        float rz;
+        double wrist1;
+        double wrist2;
+        double wrist3;
     };
-    CameraTCPOrientation(string cobotIpAddr);
-    ~CameraTCPOrientation();
+
+     RobotJointAngles(string cobotIpAddr);
+    ~RobotJointAngles();
 
     bool initializeModbus();
-    TCP getTCPOrientation();
+    Joints getJointAngles();
 
 
 private:
