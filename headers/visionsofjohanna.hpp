@@ -51,13 +51,13 @@ public Q_SLOTS:
     void updateFrameRobotModel();
 private:
     struct afterTransformer{
-        double rx;
-        double ry;
-        double rz;
+        double rx = 0;
+        double ry = 0;
+        double rz = 0;
 
-        double x;
-        double y;
-        double z;
+        double x = 0;
+        double y = 0;
+        double z = 0;
 
         Eigen::Matrix4d getNetAffineTransformer() {
             Eigen::Affine3d transformer = Eigen::Affine3d::Identity();
@@ -67,8 +67,8 @@ private:
 
             Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
             Eigen::Matrix3d rotationMatrix = q.matrix();
-            transformer.prerotate(rotationMatrix);
             transformer.pretranslate(Eigen::Vector3d(x/100,y/100, z/100));
+            transformer.prerotate(rotationMatrix);
 
             return transformer.matrix();
         }

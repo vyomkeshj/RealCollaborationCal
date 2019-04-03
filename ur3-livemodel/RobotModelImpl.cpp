@@ -19,13 +19,13 @@ void RobotModelImpl::initializeRobot() {
 
     int jointIndex = 1;
     Artifact* baseArtifact =
-            new Artifact("/Users/vyomkesh/XcodeProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_base.stl",
+            new Artifact("/home/rob-ot/CLionProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_base.stl",
                     partPointer, 0.075, 0.038, 0);
     baseArtifact->setPartName("baseArtifact");
     baseArtifact->setWorldRotationRpy(Vector3d(0.0, 0.0, 0.0));
     baseArtifact->setWorldTranslation(Vector3d(0.0, 0.0, 0.0));
 
-    Artifact* shoulderLink =  new Artifact("//Users/vyomkesh/XcodeProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_shoulder.stl"
+    Artifact* shoulderLink =  new Artifact("/home/rob-ot/CLionProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_shoulder.stl"
             , partPointer, 0.075, 0.178, 2);
     shoulderLink->setPartName("shoulderLink");
     shoulderLink->setWorldRotationRpy(Vector3d(0, 0, 0));
@@ -40,7 +40,7 @@ void RobotModelImpl::initializeRobot() {
     currentRobotState.addPart(shoulderPanJoint);
     currentRobotState.addPart(shoulderLink);
 
-    Artifact* upperArmLink = new Artifact("/Users/vyomkesh/XcodeProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_upperarm.stl",
+    Artifact* upperArmLink = new Artifact("/home/rob-ot/CLionProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_upperarm.stl",
             partPointer, 0.075, 0.24365, 4);
     upperArmLink->setPartName("upperArmLink");
 
@@ -56,7 +56,7 @@ void RobotModelImpl::initializeRobot() {
     currentRobotState.addPart(shoulderLiftJoint);
     currentRobotState.addPart(upperArmLink);
 
-    Artifact *forearmLink = new Artifact("/Users/vyomkesh/XcodeProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_forearm.stl",
+    Artifact *forearmLink = new Artifact("/home/rob-ot/CLionProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_forearm.stl",
                                          partPointer, 0.075, 0.21325, 6);
     forearmLink->setPartName("forearmLink");
     forearmLink->setWorldRotationRpy(Vector3d(0.0, 0.0, 0.0));
@@ -72,7 +72,7 @@ void RobotModelImpl::initializeRobot() {
     currentRobotState.addPart(elbowJoint);
     currentRobotState.addPart(forearmLink);
 
-    Artifact* wrist1Link = new Artifact("/Users/vyomkesh/XcodeProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_wrist1.stl",
+    Artifact* wrist1Link = new Artifact("/home/rob-ot/CLionProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_wrist1.stl",
                                         partPointer, 0.075, 0.12, 8);    //TODO: fix the numbers
     wrist1Link->setPartName("wrist1Link");
     wrist1Link->setWorldRotationRpy(Vector3d(0.0, 0.0, 0.0));
@@ -90,7 +90,7 @@ void RobotModelImpl::initializeRobot() {
     jointIndex = jointIndex + 2;
     jointIndexKeeper.insert(std::make_pair(jointIndex, wrist1Joint));
 
-    Artifact* wrist2Link = new Artifact("/Users/vyomkesh/XcodeProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_wrist2.stl",
+    Artifact* wrist2Link = new Artifact("/home/rob-ot/CLionProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_wrist2.stl",
                                         partPointer, 0.075, 0.12, 10);
     wrist2Link->setPartName("wrist2Link");
     wrist2Link->setWorldRotationRpy(Vector3d(0.0, 0.0, 0.0));
@@ -107,7 +107,7 @@ void RobotModelImpl::initializeRobot() {
     jointIndex = jointIndex + 2;
     jointIndexKeeper.insert(std::make_pair(jointIndex, wrist2Joint));
 
-    Artifact* wrist3Link = new Artifact("/Users/vyomkesh/XcodeProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_wrist3.stl", partPointer,
+    Artifact* wrist3Link = new Artifact("/home/rob-ot/CLionProjects/RealCollaborationCal/ur3-livemodel/ur3stl/z_wrist3.stl", partPointer,
             0.075, 0.12, 12);
     wrist3Link->setPartName("wrist3Link");
     wrist3Link->setWorldRotationRpy(Vector3d(0.0, 0.0, 0.0));
@@ -170,6 +170,5 @@ void RobotModelImpl::filterRobotFromPointCloud(pcl::PointCloud<pcl::PointXYZRGB>
     }
 }
 */
-
 
 

@@ -37,9 +37,10 @@ namespace CameraFrameTransformer {
 
     }
 
-    Eigen::Matrix4d getAffineMatrixForCamera(char* cameraSerial) {
+    Eigen::Matrix4d getAffineMatrixForCamera(std::string cameraSerial) {
             Eigen::Matrix4d transformer;
-            EigenFile::read_binary(cameraSerial, transformer);
+            EigenFile::read_binary( ("/home/rob-ot/Documents/calibration/Camera70540/"+cameraSerial+".dat")
+            .c_str(), transformer);
             return transformer;
     }
 

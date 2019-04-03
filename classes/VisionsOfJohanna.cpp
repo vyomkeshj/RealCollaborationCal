@@ -84,10 +84,6 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
         if (currentDevice == "817612070540") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
-            sor.setInputCloud(currentPc);
-            sor.setMeanK(10);
-            sor.setStddevMulThresh(1.5);
-            sor.filter(*currentPc);
 
 
             *completePc = *completePc + *currentPc;
@@ -95,20 +91,12 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
         } else if (currentDevice == "817612071554") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
-            sor.setInputCloud(currentPc);
-            sor.setMeanK(10);
-            sor.setStddevMulThresh(1.5);
-            sor.filter(*currentPc);
 
             *completePc = *completePc + *currentPc;
 
         } else if (currentDevice == "817612070983") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
-            sor.setInputCloud(currentPc);
-            sor.setMeanK(10);
-            sor.setStddevMulThresh(1.5);
-            sor.filter(*currentPc);
 
             *completePc = *completePc + *currentPc;
         }
@@ -156,16 +144,17 @@ void VisionsOfJohanna::startCalibration() {
     isCalibrationEnabled = true;
     std::string serial = this->selectedDevice->text().toUtf8().constData();
 
-    //EigenFile::read_binary(serial.c_str(), currentTransformer);
-    Eigen::Affine3d identity = Eigen::Affine3d::Identity();
-    currentTransformer = identity.matrix();
+    currentTransformer = CameraFrameTransformer::getAffineMatrixForCamera(serial.c_str());
+    //Eigen::Affine3d identity = Eigen::Affine3d::Identity();
+    //currentTransformer = identity.matrix();
 }
 
 void VisionsOfJohanna::rotationZSliderChanged(int sliderval) {
+
     if (isCalibrationEnabled) {
         transformer.rz = (sliderval) / 100.000;
         //transform the pointcloud with the new value
-        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
 
         addOrUpdatepointcloud(serial, netTransform);
@@ -176,7 +165,7 @@ void VisionsOfJohanna::rotationYSliderChanged(int sliderval) {
     if (isCalibrationEnabled) {
         transformer.ry = (sliderval) / 100.000;
         //transform the pointcloud with the new value
-        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
 
         addOrUpdatepointcloud(serial, netTransform);
@@ -187,7 +176,7 @@ void VisionsOfJohanna::rotationXSliderChanged(int sliderval) {
     if (isCalibrationEnabled) {
         transformer.rx = (sliderval) / 100.000;
         //transform the pointcloud with the new value
-        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
         addOrUpdatepointcloud(serial, netTransform);
     }
@@ -197,7 +186,7 @@ void VisionsOfJohanna::translationXSliderChanged(int sliderval) {
     if (isCalibrationEnabled) {
         transformer.x = (sliderval) / 100.000;
         //transform the pointcloud with the new value
-        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
         addOrUpdatepointcloud(serial, netTransform);
     }
@@ -207,7 +196,7 @@ void VisionsOfJohanna::translationYSliderChanged(int sliderval) {
     if (isCalibrationEnabled) {
         transformer.y = (sliderval) / 100.000;
         //transform the pointcloud with the new valuesetDistanceThreshold
-        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
         addOrUpdatepointcloud(serial, netTransform);
     }
@@ -217,7 +206,7 @@ void VisionsOfJohanna::translationZSliderChanged(int sliderval) {
     if (isCalibrationEnabled) {
         transformer.z = (sliderval) / 100.000;
         //transform the pointcloud with the new value
-        Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+        Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
         addOrUpdatepointcloud(serial, netTransform);
     }
@@ -270,10 +259,12 @@ void VisionsOfJohanna::repaintPointCloud() {
 void VisionsOfJohanna::saveCalibration() {
     isCalibrationEnabled = false;
     std::string serial = this->selectedDevice->text().toUtf8().constData();
-    Eigen::Matrix4d netTransform = currentTransformer * transformer.getNetAffineTransformer();
+    Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()* currentTransformer;
     std::string matrixFile = "/home/rob-ot/Documents/calibration/Camera70540/" + serial + ".dat";
     EigenFile::write_binary(matrixFile.c_str(), netTransform);
     transformer.reset();
+    Eigen::Affine3d identity = Eigen::Affine3d::Identity();
+    currentTransformer = identity.matrix();
 }
 
 void VisionsOfJohanna::updateFrameRobotModel() {
