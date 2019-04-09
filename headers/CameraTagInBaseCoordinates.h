@@ -23,7 +23,7 @@ namespace CameraFrameTransformer {
         Eigen::Matrix4d transformer;
         EigenFile::read_binary(cameraSerial, transformer);
 
-        std::cout<<"transformer= "<<transformer<<"device="<<cameraSerial<<std::endl;
+        //std::cout<<"transformer= "<<transformer<<"device="<<cameraSerial<<std::endl;
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
         pcl::transformPointCloud (*initial, *transformed_cloud, transformer);
         return transformed_cloud;

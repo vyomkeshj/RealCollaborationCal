@@ -84,23 +84,26 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
     for (const string &currentDevice: deviceNames) {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
                 manager.getPointCloudFromCamera(currentDevice);
+        if(calibrationMap.find(currentDevice) == calibrationMap.end())
+        calibrationMap.insert(std::make_pair(currentDevice, CameraFrameTransformer::getAffineMatrixForCamera(currentDevice)));
+            //Fixme: remove redundant code
         if (currentDevice == "817612070540") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
+                    (currentPc, calibrationMap[currentDevice]);
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 100, 0 , 0);
             *net = *net+*currentPc;
             //continue;
         } else if (currentDevice == "817612071554") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
+                    (currentPc, calibrationMap[currentDevice]);
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 0, 100 , 0);
             *net = *net+*currentPc;
 
         } else if (currentDevice == "817612070983") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
+                    (currentPc, calibrationMap[currentDevice]);
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 0, 0 , 100);
             *net = *net+*currentPc;
@@ -116,7 +119,7 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
 
         //Checking collisions here
 
-        for(pcl::PointXYZRGB currentPoint: completePc->points) {
+        for(pcl::PointXYZRGB currentPoint: net->points) {
             if(implementedRobotModel.getCurrentRobotState().checkCollisionWithPoint(currentPoint.x, currentPoint.y, currentPoint.z))
                 std::cout<<"collision detected"<<endl;
         }

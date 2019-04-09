@@ -20,6 +20,7 @@
 #include <QtWidgets/QListWidget>
 #include <ur3-livemodel/headers/RobotModelImpl.h>
 #include "RobotJointAngles.h"
+#include <Eigen/Dense>
 
 namespace Ui {
     class VisionsOfJohanna;
@@ -98,6 +99,7 @@ private:
     bool isModelVisible = true;
     bool arePointCloudsColorful = false;
     bool isCurrentPointcloudToBeSaved = false;
+    std::map<std::string, Eigen::Matrix4d> calibrationMap;
 };
 
 #endif
