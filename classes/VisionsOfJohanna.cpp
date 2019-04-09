@@ -18,6 +18,8 @@
 #include <pcl/segmentation/region_growing.h>
 #include <pcl/segmentation/region_growing_rgb.h>
 #include <ur3-livemodel/headers/Artifact.h>
+#include <headers/visionsofjohanna.hpp>
+
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
 RealsenseManager manager(1.0f);
@@ -35,7 +37,7 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     viewer->addText("Bumblebee", 0, 0, "text", 0);
     viewer->addCoordinateSystem(1.0);
     jointAnglesListener = new RobotJointAngles("192.168.1.101");  //FIXME: add real ip
-    jointAnglesListener->initializeModbus();
+    //jointAnglesListener->initializeModbus();
     keepPointCloudsUpToDate();
     updateFrameRobotModel();
     updateDeviceList();
@@ -51,6 +53,8 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     connect(ui->x_slider, SIGNAL (valueChanged(int)), this, SLOT(translationXSliderChanged(int)));
     connect(ui->y_slider, SIGNAL (valueChanged(int)), this, SLOT(translationYSliderChanged(int)));
     connect(ui->z_slider, SIGNAL (valueChanged(int)), this, SLOT(translationZSliderChanged(int)));
+    connect(ui->toggleColorButton, SIGNAL (clicked()), this, SLOT(changePointCloudColorBehaviour()));
+    connect(ui->toggleModelButton, SIGNAL (clicked()), this, SLOT(changeModelVisibility()));
 
     QTimer *pointCloudUpdateTimer = new QTimer(this);
     pointCloudUpdateTimer->setInterval(2 * 100);
@@ -77,7 +81,6 @@ void VisionsOfJohanna::enableTogglePressed() {
 void VisionsOfJohanna::keepPointCloudsUpToDate() {
     manager.grabNewFrames();
     std::vector<string> deviceNames = manager.getConnectedDeviceIds();
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr completePc(new pcl::PointCloud<pcl::PointXYZRGB>());
 
     for (const string &currentDevice: deviceNames) {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
@@ -85,28 +88,29 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
         if (currentDevice == "817612070540") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
+            if(arePointCloudsColorful)
+                tintPointcloud(currentPc, 100, 0 , 0);
 
-
-            *completePc = *completePc + *currentPc;
             //continue;
         } else if (currentDevice == "817612071554") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
-
-            *completePc = *completePc + *currentPc;
+            if(arePointCloudsColorful)
+                tintPointcloud(currentPc, 0, 100 , 0);
 
         } else if (currentDevice == "817612070983") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
+            if(arePointCloudsColorful)
+                tintPointcloud(currentPc, 0, 0 , 100);
 
-            *completePc = *completePc + *currentPc;
+        }
+        if (!viewer->updatePointCloud(currentPc, currentDevice)) {
+            viewer->addPointCloud(currentPc, currentDevice);
         }
 
     }
     //completePc = getSegementedPc(completePc);
-    if (!viewer->updatePointCloud(completePc, "net")) {
-        viewer->addPointCloud(completePc, "net");
-    }
     updateFrameRobotModel();
 
     //pcPublisher.setPointCloud(*completePc);
@@ -145,7 +149,7 @@ void VisionsOfJohanna::setupSliders() {
 void VisionsOfJohanna::startCalibration() {
     isCalibrationEnabled = true;
     std::string serial = this->selectedDevice->text().toUtf8().constData();
-
+    viewer->removePointCloud(serial);
     currentTransformer = CameraFrameTransformer::getAffineMatrixForCamera(serial.c_str());
     //Eigen::Affine3d identity = Eigen::Affine3d::Identity();
     //currentTransformer = identity.matrix();
@@ -245,9 +249,12 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
 
     currentPc = CameraFrameTransformer::transformPcloudWithAffine
             (currentPc, transform);
+    if(arePointCloudsColorful)
+    tintPointcloud(currentPc, 100, 100 ,200);
     if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
         viewer->addPointCloud(currentPc, deviceSerial);
     }
+
     ui->pclRendererVTKWidget->show();
     ui->pclRendererVTKWidget->update();
 
@@ -267,25 +274,50 @@ void VisionsOfJohanna::saveCalibration() {
     transformer.reset();
     Eigen::Affine3d identity = Eigen::Affine3d::Identity();
     currentTransformer = identity.matrix();
+
+    ui->rz_slider->setValue(0);
+    ui->ry_slider->setValue(0);
+    ui->rx_slider->setValue(0);
+
+    ui->z_slider->setValue(0);
+    ui->y_slider->setValue(0);
+    ui->x_slider->setValue(0);
+
 }
 
 void VisionsOfJohanna::updateFrameRobotModel() {
-    RobotJointAngles::Joints jointStat = jointAnglesListener->getJointAngles();
-    implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
-            jointStat.wrist1, jointStat.wrist2);
+   // RobotJointAngles::Joints jointStat = jointAnglesListener->getJointAngles();
+    //implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
+     //       jointStat.wrist1, jointStat.wrist2);
 
     viewer->removeAllShapes();
+    if(isModelVisible) {
         std::vector<RobotPart *> partsList = *implementedRobotModel.getPartsInSpace();
         for (auto currentPart: partsList) {
             if (currentPart != nullptr) {
-                Artifact *currentArtifact = dynamic_cast< Artifact*>(currentPart);
+                Artifact *currentArtifact = dynamic_cast< Artifact *>(currentPart);
                 if (currentArtifact != nullptr) {
                     Eigen::Matrix4d transform = currentArtifact->getWorldTransformation().matrix();
-                    viewer->addModelFromPolyData(currentArtifact->getPolyMesh(),currentArtifact->getVTKtransform(),
-                            currentPart->getPartName());
+                    viewer->addModelFromPolyData(currentArtifact->getPolyMesh(), currentArtifact->getVTKtransform(),
+                                                 currentPart->getPartName());
                 }
             }
         }
+    }
 
 }
+ void VisionsOfJohanna::tintPointcloud(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcld, int r, int g, int b) {
+    for(pcl::PointXYZRGB &currentPt: *pcld) {
+        currentPt.r = r;
+        currentPt.g = g;
+        currentPt.b = b;
+    }
+}
 
+void VisionsOfJohanna::changeModelVisibility() {
+    isModelVisible = !isModelVisible;
+}
+
+void VisionsOfJohanna::changePointCloudColorBehaviour() {
+    arePointCloudsColorful = !arePointCloudsColorful;
+}
