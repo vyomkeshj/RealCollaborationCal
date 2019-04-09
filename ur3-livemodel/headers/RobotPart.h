@@ -13,7 +13,7 @@ public:
 
     RobotPart(std::vector<RobotPart*>* partsList, int index);
 
-    void transformElement(Eigen::Matrix4d transform);
+    void transformElement(Eigen::Affine3d transform);
     const Eigen::Affine3d &getWorldTransformation() const;
     void setWorldTransformation(Eigen::Affine3d worldTransformation);
 

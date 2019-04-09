@@ -24,8 +24,6 @@ Artifact::Artifact(const std::string &ojectStlFile, std::vector<RobotPart*>* par
         PCL_ERROR("Failed to load STL file as polygons\n");
     }
 
-    //TODO: try to load the poly data
-
     vtkSmartPointer<vtkSTLReader> reader =
             vtkSmartPointer<vtkSTLReader>::New();
     reader->SetFileName(ojectStlFile.c_str());
@@ -118,4 +116,18 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr Artifact::getArtifactPc() {
     pcl::transformPointCloud(*artifactPc, *artifactPc, worldTransformation.matrix());
 
     return artifactPc;
+}
+
+void Artifact::addCollisionArtifact(CollisionArtifact *collisionArtifact) {
+    collisionArtifacts.emplace_back(collisionArtifact);
+}
+
+void Artifact::transformCollisionArtifacts(Eigen::Affine3d allTransform) {
+    for(CollisionArtifact* currentCollsionModel : collisionArtifacts) {
+        currentCollsionModel->transformArtifact(allTransform);
+    }
+}
+
+const std::vector<CollisionArtifact *> &Artifact::getCollisionArtifacts() const {
+    return collisionArtifacts;
 }

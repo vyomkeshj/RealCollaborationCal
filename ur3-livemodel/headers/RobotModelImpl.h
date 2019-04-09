@@ -13,6 +13,7 @@ class RobotModelImpl {
 public:
     void initializeRobot();
     void setJointAngles(double angle1, double angle2, double angle3, double angle4, double angle5);
+    RobotModel &getCurrentRobotState();
     std::vector<RobotPart*>* getPartsInSpace();
     RobotModelImpl();
 private:

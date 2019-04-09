@@ -29,7 +29,7 @@ add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
          ur3-livemodel/Artifact.cpp
         ur3-livemodel/headers/Artifact.h ur3-livemodel/Joint.cpp ur3-livemodel/headers/Joint.h ur3-livemodel/RobotModel.cpp
         ur3-livemodel/headers/RobotModel.h ur3-livemodel/headers/RobotPart.h ur3-livemodel/RobotModelImpl.cpp
-        ur3-livemodel/headers/RobotModelImpl.h ur3-livemodel/RobotPart.cpp classes/CobotFilter.cpp headers/CobotFilter.h)
+        ur3-livemodel/headers/RobotModelImpl.h ur3-livemodel/RobotPart.cpp classes/CobotFilter.cpp headers/CobotFilter.h ur3-livemodel/CollisionArtifact.cpp ur3-livemodel/headers/CollisionArtifact.h)
 
 #[[
 

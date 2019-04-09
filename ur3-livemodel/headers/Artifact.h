@@ -17,6 +17,7 @@
 #include <pcl/point_types.h>
 #include <pcl/PolygonMesh.h>
 #include "RobotPart.h"
+#include "CollisionArtifact.h"
 
 //Represents a 3D artifact in the scene
 class Artifact : public RobotPart{
@@ -30,7 +31,6 @@ public:
 
     float getPartRadius() const;
 
-
     void setPartRadius(float partRadius);
 
     float getPartLength() const;
@@ -41,11 +41,18 @@ public:
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getArtifactPc();
 
+    void transformCollisionArtifacts(Eigen::Affine3d allTransform);
+
+    void addCollisionArtifact(CollisionArtifact *collisionArtifact);
+
 private:
     std::string ojectStlFile;
     vtkSmartPointer<vtkPolyData> objectMesh;
     pcl::PolygonMesh polygons;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr artifactPc;
+    std::vector<CollisionArtifact*> collisionArtifacts;
+public:
+    const std::vector<CollisionArtifact *> &getCollisionArtifacts() const;
 
 public:
     const vtkSmartPointer<vtkPolyData> &getPolyMesh() const;

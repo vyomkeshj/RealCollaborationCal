@@ -24,7 +24,7 @@ void RobotModel::rotateAtJoint(int jointIndex, float angle) {
             RobotPart *part = partsInSequence.at(i); //gets reference to the part at the index
             auto artifact = dynamic_cast<Artifact *>(part);
             if(artifact != nullptr) {
-                artifact->transformElement(transform.matrix()); //transforms rest of the joints
+                artifact->transformElement(transform); //transforms rest of the joints
                 partsInSequence.at(i) = artifact;
             } else {
                 auto joint = dynamic_cast<Joint *>(part);
@@ -60,5 +60,17 @@ void RobotModel::setJointAngles(double angle1, double angle2, double angle3, dou
     prevAngle3 = angle3;
     prevAngle4 = angle4;
     prevAngle5 = angle5;
+}
+
+bool RobotModel::checkCollisionWithPoint(float x, float y, float z) {
+    for(RobotPart* part :partsInSequence) {
+        auto artifact = dynamic_cast<Artifact *>(part);
+        if(artifact!= nullptr) {
+            for(CollisionArtifact* currentCollisionArtifact: artifact->getCollisionArtifacts()) {
+                return currentCollisionArtifact->isInlier(x, y, z);
+            }
+        }
+    }
+    return false;
 }
 

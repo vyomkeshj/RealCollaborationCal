@@ -102,6 +102,12 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
             *completePc = *completePc + *currentPc;
         }
 
+        //Checking collisions here
+
+        for(pcl::PointXYZRGB currentPoint: completePc->points) {
+            if(implementedRobotModel.getCurrentRobotState().checkCollisionWithPoint(currentPoint.x, currentPoint.y, currentPoint.z))
+                std::cout<<"collision detected"<<endl;
+        }
     }
     //completePc = getSegementedPc(completePc);
     if (!viewer->updatePointCloud(completePc, "net")) {

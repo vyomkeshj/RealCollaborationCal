@@ -7,10 +7,15 @@
 
 #include "headers/RobotPart.h"
 
-void RobotPart::transformElement(Eigen::Matrix4d transform) {
+void RobotPart::transformElement(Eigen::Affine3d transform) {
     Eigen::Affine3d newTransform = Eigen::Affine3d::Identity();
     newTransform.matrix() = transform*(worldTransformation.matrix());
     setWorldTransformation(newTransform);
+
+    auto artifact = dynamic_cast<Artifact *>(this);
+    if(artifact!=nullptr)
+        artifact->transformCollisionArtifacts(transform); /// In case of artifact, update collision models as well!
+
 }
 
 void RobotPart::setWorldTransformation(Eigen::Affine3d worldTransformation) {
