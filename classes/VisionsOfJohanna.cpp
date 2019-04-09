@@ -19,7 +19,7 @@
 #include <pcl/segmentation/region_growing_rgb.h>
 #include <ur3-livemodel/headers/Artifact.h>
 #include <headers/visionsofjohanna.hpp>
-
+#include <pcl/io/pcd_io.h>
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
 RealsenseManager manager(1.0f);
@@ -42,7 +42,7 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     updateFrameRobotModel();
     updateDeviceList();
     setupSliders();
-    connect(ui->enableDisableCameraButton, SIGNAL (clicked()), this, SLOT (enableTogglePressed()));
+    //connect(ui->saveCurrent, SIGNAL (clicked()), this, SLOT (enableTogglePressed()));
     connect(ui->calibrateSelectedCameraButton, SIGNAL (clicked()), this, SLOT(startCalibration()));
     connect(ui->saveCalibrationButton, SIGNAL (clicked()), this, SLOT(saveCalibration()));
     connect(ui->cameraListWidget, SIGNAL (itemClicked(QListWidgetItem * )), this,
@@ -74,14 +74,13 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getPointCloudFromCamera
 }
 
 void VisionsOfJohanna::enableTogglePressed() {
-    printf("Toggle pressed\n");
-    keepPointCloudsUpToDate();
+    isCurrentPointcloudToBeSaved = true;
 }
 
 void VisionsOfJohanna::keepPointCloudsUpToDate() {
     manager.grabNewFrames();
     std::vector<string> deviceNames = manager.getConnectedDeviceIds();
-
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr net(new pcl::PointCloud<pcl::PointXYZRGB>);
     for (const string &currentDevice: deviceNames) {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
                 manager.getPointCloudFromCamera(currentDevice);
@@ -90,23 +89,29 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 100, 0 , 0);
-
+            *net = *net+*currentPc;
             //continue;
         } else if (currentDevice == "817612071554") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 0, 100 , 0);
+            *net = *net+*currentPc;
 
         } else if (currentDevice == "817612070983") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 0, 0 , 100);
+            *net = *net+*currentPc;
 
         }
         if (!viewer->updatePointCloud(currentPc, currentDevice)) {
             viewer->addPointCloud(currentPc, currentDevice);
+        }
+        if(isCurrentPointcloudToBeSaved) {
+            isCurrentPointcloudToBeSaved = false;
+            pcl::io::savePCDFileASCII ("/home/rob-ot/Documents/calibration/Camera70540/saved_pointcloud.pcd", *net);
         }
 
     }
@@ -266,22 +271,24 @@ void VisionsOfJohanna::repaintPointCloud() {
 }
 
 void VisionsOfJohanna::saveCalibration() {
-    isCalibrationEnabled = false;
-    std::string serial = this->selectedDevice->text().toUtf8().constData();
-    Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()* currentTransformer;
-    std::string matrixFile = "/home/rob-ot/Documents/calibration/Camera70540/" + serial + ".dat";
-    EigenFile::write_binary(matrixFile.c_str(), netTransform);
-    transformer.reset();
-    Eigen::Affine3d identity = Eigen::Affine3d::Identity();
-    currentTransformer = identity.matrix();
+    if(isCalibrationEnabled) {
+        isCalibrationEnabled = false;
+        std::string serial = this->selectedDevice->text().toUtf8().constData();
+        Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer() * currentTransformer;
+        std::string matrixFile = "/home/rob-ot/Documents/calibration/Camera70540/" + serial + ".dat";
+        EigenFile::write_binary(matrixFile.c_str(), netTransform);
+        transformer.reset();
+        Eigen::Affine3d identity = Eigen::Affine3d::Identity();
+        currentTransformer = identity.matrix();
 
-    ui->rz_slider->setValue(0);
-    ui->ry_slider->setValue(0);
-    ui->rx_slider->setValue(0);
+        ui->rz_slider->setValue(0);
+        ui->ry_slider->setValue(0);
+        ui->rx_slider->setValue(0);
 
-    ui->z_slider->setValue(0);
-    ui->y_slider->setValue(0);
-    ui->x_slider->setValue(0);
+        ui->z_slider->setValue(0);
+        ui->y_slider->setValue(0);
+        ui->x_slider->setValue(0);
+    }
 
 }
 

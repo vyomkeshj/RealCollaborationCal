@@ -97,6 +97,7 @@ private:
     RobotJointAngles *jointAnglesListener;
     bool isModelVisible = true;
     bool arePointCloudsColorful = false;
+    bool isCurrentPointcloudToBeSaved = false;
 };
 
 #endif
