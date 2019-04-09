@@ -46,6 +46,9 @@ public Q_SLOTS:
     void translationYSliderChanged(int sliderval);
     void translationZSliderChanged(int sliderval);
 
+    void changeModelVisibility();
+    void changePointCloudColorBehaviour();
+
     void updateSelectedDevice(QListWidgetItem *item);
     void repaintPointCloud();
     void updateFrameRobotModel();
@@ -90,8 +93,11 @@ private:
     void setupSliders();
     void addOrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);
     pcl::PointCloud <pcl::PointXYZRGB>::Ptr getSegementedPc(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcIn);
-
+    void tintPointcloud(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcld, int r, int g, int b);
     RobotJointAngles *jointAnglesListener;
+    bool isModelVisible = true;
+    bool arePointCloudsColorful = false;
+    bool isCurrentPointcloudToBeSaved = false;
 };
 
 #endif
