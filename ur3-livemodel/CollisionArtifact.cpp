@@ -27,10 +27,10 @@ void CollisionArtifact::transformArtifact(Eigen::Affine3d transform) {
  * returns true if the points conforms to the collision definition
  * **/
 bool CollisionArtifact::isInlier(double x, double y, double z) {
-    Eigen::Vector3d lineOriginToPointVector(x-lineAxis[0], y-lineAxis[1], z-lineAxis[2]);
+    Eigen::Vector3d lineOriginToPointVector(x-lineOrigin[0], y-lineOrigin[1], z-lineOrigin[2]);
     double distanceFromOrigin = lineAxis.dot(lineOriginToPointVector);
     Eigen::Vector3d vectorToIntersectionOfPerpendicular = distanceFromOrigin*lineAxis;
-    Eigen::Vector3d perpendicularVector = vectorToIntersectionOfPerpendicular + lineOriginToPointVector;
+    Eigen::Vector3d perpendicularVector = lineOriginToPointVector - vectorToIntersectionOfPerpendicular;
 
     return distanceFromOrigin > 0 && distanceFromOrigin < artifactLength && perpendicularVector.norm() < artifactRadius;
 
