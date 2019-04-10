@@ -80,35 +80,34 @@ void VisionsOfJohanna::enableTogglePressed() {
 }
 
 void VisionsOfJohanna::keepPointCloudsUpToDate() {
-    manager.grabNewFrames();
+    manager.grabNewFrames(); //updates the frameset in the structure
     std::vector<string> deviceNames = manager.getConnectedDeviceIds();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr net(new pcl::PointCloud<pcl::PointXYZRGB>);
     for (const string &currentDevice: deviceNames) {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
                 manager.getPointCloudFromCamera(currentDevice);
-        if(calibrationMap.find(currentDevice) == calibrationMap.end())
-        calibrationMap.insert(std::make_pair(currentDevice, CameraFrameTransformer::getAffineMatrixForCamera(currentDevice)));
             //Fixme: remove redundant code
         if (currentDevice == "817612070540") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                    (currentPc, calibrationMap[currentDevice]);
+                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 100, 0 , 0);
             *net = *net+*currentPc;
             //continue;
         } else if (currentDevice == "817612071554") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                    (currentPc, calibrationMap[currentDevice]);
+                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 0, 100 , 0);
             *net = *net+*currentPc;
 
         } else if (currentDevice == "817612070983") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
-                    (currentPc, calibrationMap[currentDevice]);
+                    (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
             if(arePointCloudsColorful)
                 tintPointcloud(currentPc, 0, 0 , 100);
             *net = *net+*currentPc;
+
 
         }
         if (!viewer->updatePointCloud(currentPc, currentDevice)) {
@@ -267,11 +266,11 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
             (currentPc, transform);
     if(arePointCloudsColorful)
     tintPointcloud(currentPc, 100, 100 ,200);
-    viewer->removeAllPointClouds();
+    //viewer->removeAllPointClouds();                                                 //TODO: removing this will show all the pointclouds together while calibrating
     //FIXME: test this
-    //if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
+    if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
         viewer->addPointCloud(currentPc, deviceSerial);
-    //}
+    }
 
     ui->pclRendererVTKWidget->show();
     ui->pclRendererVTKWidget->update();
@@ -312,11 +311,11 @@ void VisionsOfJohanna::updateFrameRobotModel() {
    // RobotJointAngles::Joints jointStat = jointAnglesListener->getJointAngles();
     //implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
      //       jointStat.wrist1, jointStat.wrist2);
-    implementedRobotModel.setJointAngles(PI/3, PI/3, PI/3,
-                                         PI/3, PI/3);
+    //implementedRobotModel.setJointAngles(PI/3, PI/3, PI/3,
+    //                                     PI/3, PI/3);
 
     viewer->removeAllShapes();
-    addLineModelsToViewer();
+    //addLineModelsToViewer();                          //Uncomment to show a line model trail of the robot
 
     if(isModelVisible) {
         std::vector<RobotPart *> partsList = *implementedRobotModel.getPartsInSpace();
@@ -371,7 +370,7 @@ void VisionsOfJohanna::addLineModelsToViewer() {
                 actor->SetMapper(mapper);
                 actor->GetProperty()->SetLineWidth(4);
 
-                viewer->getRenderWindow ()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+                viewer->getRenderWindow()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
                 counter++;
             }
         }

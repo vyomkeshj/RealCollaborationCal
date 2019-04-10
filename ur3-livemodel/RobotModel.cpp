@@ -67,7 +67,8 @@ bool RobotModel::checkCollisionWithPoint(float x, float y, float z) {
         auto artifact = dynamic_cast<Artifact *>(part);
         if(artifact!= nullptr) {
             for(CollisionArtifact* currentCollisionArtifact: artifact->getCollisionArtifacts()) {
-                return currentCollisionArtifact->isInlier(x, y, z);
+                if(currentCollisionArtifact->isInlier(x, y, z))
+                return true;
             }
         }
     }
