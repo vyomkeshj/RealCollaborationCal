@@ -37,15 +37,15 @@ void RobotModelImpl::initializeRobot() {
     shoulderPanJoint->setRotationAxis(Eigen::Vector3d(0, 0, 1));
     shoulderPanJoint->setWorldTranslation(Eigen::Vector3d(0, 0, 0.085));
 
-    CollisionArtifact *baseCollisionArtifact = new CollisionArtifact(baseArtifact->getWorldTranslation(),
+    /*CollisionArtifact *baseCollisionArtifact = new CollisionArtifact(baseArtifact->getWorldTranslation(),
             shoulderPanJoint->getRotationAxis(), baseArtifact->getPartLength(), baseArtifact->getPartRadius());
     baseArtifact->addCollisionArtifact(baseCollisionArtifact);
-
-    CollisionArtifact *shoulderLinkCollisionArtifact = new CollisionArtifact(shoulderLink->getWorldTranslation(),
+    */
+    CollisionArtifact *shoulderLinkCollisionArtifact = new CollisionArtifact(shoulderPanJoint->getWorldTranslation(),
                                                                      shoulderPanJoint->getRotationAxis(), shoulderLink->getPartLength(),
                                                                      shoulderLink->getPartRadius());
     shoulderLink->addCollisionArtifact(shoulderLinkCollisionArtifact);
-    baseArtifact->addCollisionArtifact(baseCollisionArtifact);
+    //baseArtifact->addCollisionArtifact(baseCollisionArtifact);
 
     currentRobotState.addPart(baseArtifact);
     currentRobotState.addPart(shoulderPanJoint);
@@ -63,7 +63,7 @@ void RobotModelImpl::initializeRobot() {
     shoulderLiftJoint->setRotationAxis(Eigen::Vector3d(0, 1, 0));
     shoulderLiftJoint->setWorldTranslation(Eigen::Vector3d(0, 0.054, 0.152));
 
-    CollisionArtifact *upperArmArtifact = new CollisionArtifact(upperArmLink->getWorldTranslation(),
+    CollisionArtifact *upperArmArtifact = new CollisionArtifact(shoulderLiftJoint->getWorldTranslation(),
                                                                 Eigen::Vector3d(0, 0, 1),
                                                                      upperArmLink->getPartLength(), upperArmLink->getPartRadius());
     upperArmLink->addCollisionArtifact(upperArmArtifact);
@@ -85,7 +85,7 @@ void RobotModelImpl::initializeRobot() {
     elbowJoint->setRotationAxis(Eigen::Vector3d(0, 1, 0));
     elbowJoint->setWorldTranslation(Eigen::Vector3d(0, 0.06, 0.395));
 
-    CollisionArtifact *forearmCollisionArtifact = new CollisionArtifact(forearmLink->getWorldTranslation(),
+    CollisionArtifact *forearmCollisionArtifact = new CollisionArtifact(elbowJoint->getWorldTranslation(),
                                                                         Eigen::Vector3d(0, 0, 1), forearmLink->getPartLength(),
                                                                         forearmLink->getPartRadius());
     forearmLink->addCollisionArtifact(forearmCollisionArtifact);
@@ -105,7 +105,7 @@ void RobotModelImpl::initializeRobot() {
     wrist1Joint->setRotationAxis(Eigen::Vector3d(0, 1, 0));
     wrist1Joint->setWorldTranslation(Eigen::Vector3d(0, 0.06, 0.608));
 
-    CollisionArtifact *wrist1CollisionArtifact = new CollisionArtifact(wrist1Link->getWorldTranslation(),
+    CollisionArtifact *wrist1CollisionArtifact = new CollisionArtifact(wrist1Joint->getWorldTranslation(),
                                                                         Eigen::Vector3d(0, 1, 0), wrist1Link->getPartLength(),
                                                                         wrist1Link->getPartRadius());
     wrist1Link->addCollisionArtifact(wrist1CollisionArtifact);
@@ -128,7 +128,7 @@ void RobotModelImpl::initializeRobot() {
     wrist2Joint->setRotationAxis(Eigen::Vector3d(0, 0, 1));
     wrist2Joint->setWorldTranslation(Eigen::Vector3d(0, 0.106, 0.648));
 
-    CollisionArtifact *wrist2CollisionArtifact = new CollisionArtifact(wrist2Link->getWorldTranslation(),
+    CollisionArtifact *wrist2CollisionArtifact = new CollisionArtifact(wrist2Joint->getWorldTranslation(),
                                                                        Eigen::Vector3d(0, 0, 1), wrist1Link->getPartLength(),
                                                                        wrist1Link->getPartRadius());
     wrist2Link->addCollisionArtifact(wrist2CollisionArtifact);
@@ -149,7 +149,7 @@ void RobotModelImpl::initializeRobot() {
     wrist3Joint->setRotationAxis(Eigen::Vector3d(0, 1, 0));
     wrist3Joint->setWorldTranslation(Eigen::Vector3d(0, 0.147, 0.693));
 
-    CollisionArtifact *wrist3CollisionArtifact = new CollisionArtifact(wrist3Link->getWorldTranslation(),
+    CollisionArtifact *wrist3CollisionArtifact = new CollisionArtifact(wrist3Joint->getWorldTranslation(),
                                                                        Eigen::Vector3d(0, 1, 0), wrist3Link->getPartLength(),
                                                                        wrist3Link->getPartRadius());
     wrist3Link->addCollisionArtifact(wrist3CollisionArtifact);

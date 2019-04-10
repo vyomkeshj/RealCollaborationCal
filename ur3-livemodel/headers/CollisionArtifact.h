@@ -13,6 +13,10 @@ public:
     CollisionArtifact(Eigen::Vector3d lineOrigin, Eigen::Vector3d lineAxis, float artifactLength, float artifactRadius);
     void transformArtifact(Eigen::Affine3d transformation);
     bool isInlier(double x, double y, double z);
+
+     Eigen::Vector3d getLineEnd();
+     Eigen::Vector3d getLineBegin();
+
 private:
     Eigen::Vector3d lineOrigin;
     Eigen::Vector3d lineAxis;

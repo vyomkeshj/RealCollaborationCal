@@ -95,7 +95,6 @@ vtkSmartPointer<vtkTransform> Artifact::getVTKtransform() {
     m->SetElement(3,2,getWorldTransformation().matrix()(3,2));
     m->SetElement(3,3,getWorldTransformation().matrix()(3,3));
 
-    cout<<"vtk matrix's last element= "<<getWorldTransformationMatrix()(3,3)<<std::endl;
     vtkSmartPointer<vtkPerspectiveTransform> perspectiveTransform =
             vtkSmartPointer<vtkPerspectiveTransform>::New();
     perspectiveTransform->SetMatrix(m);

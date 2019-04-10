@@ -90,6 +90,7 @@ private:
     QListWidgetItem *selectedDevice;
     RobotModelImpl implementedRobotModel;
     void keepPointCloudsUpToDate();
+    void addLineModelsToViewer();
     void updateDeviceList();
     void setupSliders();
     void addOrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);

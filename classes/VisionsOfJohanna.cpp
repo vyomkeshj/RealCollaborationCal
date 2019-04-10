@@ -38,6 +38,8 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     viewer->addCoordinateSystem(1.0);
     jointAnglesListener = new RobotJointAngles("192.168.1.101");  //FIXME: add real ip
     //jointAnglesListener->initializeModbus();
+    addLineModelsToViewer();
+
     keepPointCloudsUpToDate();
     updateFrameRobotModel();
     updateDeviceList();
@@ -165,8 +167,7 @@ void VisionsOfJohanna::startCalibration() {
     std::string serial = this->selectedDevice->text().toUtf8().constData();
     viewer->removePointCloud(serial);
     currentTransformer = CameraFrameTransformer::getAffineMatrixForCamera(serial.c_str());
-    //Eigen::Affine3d identity = Eigen::Affine3d::Identity();
-    //currentTransformer = identity.matrix();
+
 }
 
 void VisionsOfJohanna::rotationZSliderChanged(int sliderval) {
@@ -178,6 +179,7 @@ void VisionsOfJohanna::rotationZSliderChanged(int sliderval) {
         std::string serial = this->selectedDevice->text().toUtf8().constData();
 
         addOrUpdatepointcloud(serial, netTransform);
+
     }
 }
 
@@ -187,7 +189,6 @@ void VisionsOfJohanna::rotationYSliderChanged(int sliderval) {
         //transform the pointcloud with the new value
         Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
-
         addOrUpdatepointcloud(serial, netTransform);
     }
 }
@@ -204,6 +205,7 @@ void VisionsOfJohanna::rotationXSliderChanged(int sliderval) {
 
 void VisionsOfJohanna::translationXSliderChanged(int sliderval) {
     if (isCalibrationEnabled) {
+
         transformer.x = (sliderval) / 100.000;
         //transform the pointcloud with the new value
         Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
@@ -265,9 +267,11 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
             (currentPc, transform);
     if(arePointCloudsColorful)
     tintPointcloud(currentPc, 100, 100 ,200);
-    if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
+    viewer->removeAllPointClouds();
+    //FIXME: test this
+    //if (!viewer->updatePointCloud(currentPc, deviceSerial)) {
         viewer->addPointCloud(currentPc, deviceSerial);
-    }
+    //}
 
     ui->pclRendererVTKWidget->show();
     ui->pclRendererVTKWidget->update();
@@ -301,12 +305,19 @@ void VisionsOfJohanna::saveCalibration() {
 
 }
 
+/*
+ * Keeps the robot models (Line+visual up)
+ * **/
 void VisionsOfJohanna::updateFrameRobotModel() {
    // RobotJointAngles::Joints jointStat = jointAnglesListener->getJointAngles();
     //implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
      //       jointStat.wrist1, jointStat.wrist2);
+    implementedRobotModel.setJointAngles(PI/3, PI/3, PI/3,
+                                         PI/3, PI/3);
 
     viewer->removeAllShapes();
+    addLineModelsToViewer();
+
     if(isModelVisible) {
         std::vector<RobotPart *> partsList = *implementedRobotModel.getPartsInSpace();
         for (auto currentPart: partsList) {
@@ -334,6 +345,39 @@ void VisionsOfJohanna::changeModelVisibility() {
     isModelVisible = !isModelVisible;
 }
 
+
+/*
+ * Draws the line skeleton model of the robot which is used f
+ * **/
+void VisionsOfJohanna::addLineModelsToViewer() {
+    int counter = 0;
+    std::vector<RobotPart *> partsList = *implementedRobotModel.getPartsInSpace();
+    for (auto currentPart: partsList) {
+        if (currentPart != nullptr) {
+            Artifact *currentArtifact = dynamic_cast< Artifact *>(currentPart);
+            if(currentArtifact!= nullptr)
+            for(CollisionArtifact* currentCollisionArtifact: currentArtifact->getCollisionArtifacts()) {
+                vtkSmartPointer<vtkLineSource> line = vtkSmartPointer<vtkLineSource>::New ();
+                line->SetPoint1 (currentCollisionArtifact->getLineBegin()[0], currentCollisionArtifact->getLineBegin()[1], currentCollisionArtifact->getLineBegin()[2]);
+                line->SetPoint2(currentCollisionArtifact->getLineEnd()[0], currentCollisionArtifact->getLineEnd()[1], currentCollisionArtifact->getLineEnd()[2]);
+                line->Update();
+
+                cout << '\a';
+                vtkSmartPointer<vtkPolyDataMapper> mapper =
+                        vtkSmartPointer<vtkPolyDataMapper>::New();
+                mapper->SetInputConnection(line->GetOutputPort());
+                vtkSmartPointer<vtkActor> actor =
+                        vtkSmartPointer<vtkActor>::New();
+                actor->SetMapper(mapper);
+                actor->GetProperty()->SetLineWidth(4);
+
+                viewer->getRenderWindow ()->GetRenderers()->GetFirstRenderer()->AddActor(actor);
+                counter++;
+            }
+        }
+    }
+
+}
 void VisionsOfJohanna::changePointCloudColorBehaviour() {
     arePointCloudsColorful = !arePointCloudsColorful;
 }

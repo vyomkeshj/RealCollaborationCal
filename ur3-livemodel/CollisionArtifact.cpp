@@ -35,3 +35,15 @@ bool CollisionArtifact::isInlier(double x, double y, double z) {
     return distanceFromOrigin > 0 && distanceFromOrigin < artifactLength && perpendicularVector.norm() < artifactRadius;
 
 }
+
+ Eigen::Vector3d CollisionArtifact::getLineEnd()  {
+    double newx= artifactLength*lineAxis[0];
+    double newy= artifactLength*lineAxis[1];
+    double newz= artifactLength*lineAxis[2];
+
+    return lineOrigin+Eigen::Vector3d(newx, newy, newz);
+}
+
+ Eigen::Vector3d CollisionArtifact::getLineBegin()  {
+    return lineOrigin;
+}
