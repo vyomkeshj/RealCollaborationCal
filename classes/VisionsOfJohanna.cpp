@@ -20,6 +20,7 @@
 #include <ur3-livemodel/headers/Artifact.h>
 #include <headers/visionsofjohanna.hpp>
 #include <pcl/io/pcd_io.h>
+#include "ncurses.h"
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
 RealsenseManager manager(1.0f);
@@ -59,7 +60,7 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     connect(ui->toggleModelButton, SIGNAL (clicked()), this, SLOT(changeModelVisibility()));
 
     QTimer *pointCloudUpdateTimer = new QTimer(this);
-    pointCloudUpdateTimer->setInterval(2 * 100);
+    pointCloudUpdateTimer->setInterval( 10);
     connect(pointCloudUpdateTimer, SIGNAL(timeout()), this, SLOT(repaintPointCloud()));
     pointCloudUpdateTimer->start();
 }
@@ -119,15 +120,17 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
         }
 
         //Checking collisions here
-
+        #pragma omp parallel for
         for(pcl::PointXYZRGB currentPoint: net->points) {
-            if(implementedRobotModel.getCurrentRobotState().checkCollisionWithPoint(currentPoint.x, currentPoint.y, currentPoint.z))
-                std::cout<<"collision detected"<<endl;
+            if(implementedRobotModel.getCurrentRobotState().checkCollisionWithPoint(currentPoint.x, currentPoint.y, currentPoint.z)) {
+                std::cout << "collision detected" << endl;
+                char d=(char)(7);
+            }
         }
     }
     //completePc = getSegementedPc(completePc);
     updateFrameRobotModel();
-
+    addLineModelsToViewer();
     //pcPublisher.setPointCloud(*completePc);
 
     //from = CameraFrameTransformer::transformPcloudWithIcp(from, to);
@@ -310,9 +313,9 @@ void VisionsOfJohanna::saveCalibration() {
 void VisionsOfJohanna::updateFrameRobotModel() {
    // RobotJointAngles::Joints jointStat = jointAnglesListener->getJointAngles();
     //implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
-     //       jointStat.wrist1, jointStat.wrist2);
-    //implementedRobotModel.setJointAngles(PI/3, PI/3, PI/3,
-    //                                     PI/3, PI/3);
+    //        jointStat.wrist1, jointStat.wrist2);
+    implementedRobotModel.setJointAngles(PI/3, PI/3, PI/3,
+                                         PI/3, PI/3);
 
     viewer->removeAllShapes();
     //addLineModelsToViewer();                          //Uncomment to show a line model trail of the robot

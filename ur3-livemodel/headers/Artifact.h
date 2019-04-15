@@ -48,7 +48,6 @@ public:
 private:
     std::string ojectStlFile;
     vtkSmartPointer<vtkPolyData> objectMesh;
-    pcl::PolygonMesh polygons;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr artifactPc;
     std::vector<CollisionArtifact*> collisionArtifacts;
 public:

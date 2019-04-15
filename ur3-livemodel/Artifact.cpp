@@ -18,12 +18,6 @@
 Artifact::Artifact(const std::string &ojectStlFile, std::vector<RobotPart*>* parentListRef, float partRadius, float partLength, int indexInParent)
 : RobotPart(parentListRef, indexInParent) {
     this->ojectStlFile = ojectStlFile;
-
-    if (pcl::io::loadPolygonFileSTL (ojectStlFile, polygons) == 0)
-    {
-        PCL_ERROR("Failed to load STL file as polygons\n");
-    }
-
     vtkSmartPointer<vtkSTLReader> reader =
             vtkSmartPointer<vtkSTLReader>::New();
     reader->SetFileName(ojectStlFile.c_str());
@@ -107,14 +101,6 @@ vtkSmartPointer<vtkTransform> Artifact::getVTKtransform() {
 
 void Artifact::setPolyMesh(const vtkSmartPointer<vtkPolyData> &polyMesh) {
     Artifact::objectMesh = polyMesh;
-}
-
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr Artifact::getArtifactPc() {
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr artifactPc(new pcl::PointCloud<pcl::PointXYZRGB>());
-    pcl::fromPCLPointCloud2(polygons.cloud, *artifactPc);
-    pcl::transformPointCloud(*artifactPc, *artifactPc, worldTransformation.matrix());
-
-    return artifactPc;
 }
 
 void Artifact::addCollisionArtifact(CollisionArtifact *collisionArtifact) {

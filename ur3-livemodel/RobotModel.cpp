@@ -22,7 +22,7 @@ void RobotModel::rotateAtJoint(int jointIndex, float angle) {
 
         for (std::size_t i = jointIndex; i < getPartsInSequence()->size(); i++) {
             RobotPart *part = partsInSequence.at(i); //gets reference to the part at the index
-            auto artifact = dynamic_cast<Artifact *>(part);
+            auto artifact = dynamic_cast<Artifact *>(part); //if part is an artifact, do this
             if(artifact != nullptr) {
                 artifact->transformElement(transform); //transforms rest of the joints
                 partsInSequence.at(i) = artifact;

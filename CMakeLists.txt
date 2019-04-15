@@ -11,25 +11,25 @@ set(CMAKE_AUTOMOC ON) # For meta object compiler
 set(CMAKE_AUTORCC ON) # Resource files
 set(CMAKE_AUTOUIC ON) # UI files
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_CXX_FLAGS "-lncurses")
 
 set(SOURCES headers/modbus.h headers/RobotJointAngles.h classes/RobotJointAngles.cpp
         headers/modbus_exception.h classes/modbus.cpp headers/RealsenseManager.h
         headers/RealsensePoseEstimation.h
-        headers/QVTKPCloudUpdater.h )
+        )
 
 
 
 
 add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
         classes/RobotJointAngles.cpp classes/modbus.cpp
-        classes/CameraTagInBaseCoordinates.cpp
         headers/CameraTagInBaseCoordinates.h headers/visionsofjohanna.hpp
         headers/RealsenseManager.h headers/RealsenseDeviceProvider.h
         headers/EigenFileExtension.h
          ur3-livemodel/Artifact.cpp
         ur3-livemodel/headers/Artifact.h ur3-livemodel/Joint.cpp ur3-livemodel/headers/Joint.h ur3-livemodel/RobotModel.cpp
         ur3-livemodel/headers/RobotModel.h ur3-livemodel/headers/RobotPart.h ur3-livemodel/RobotModelImpl.cpp
-        ur3-livemodel/headers/RobotModelImpl.h ur3-livemodel/RobotPart.cpp classes/CobotFilter.cpp headers/CobotFilter.h ur3-livemodel/CollisionArtifact.cpp ur3-livemodel/headers/CollisionArtifact.h)
+        ur3-livemodel/headers/RobotModelImpl.h ur3-livemodel/RobotPart.cpp ur3-livemodel/CollisionArtifact.cpp ur3-livemodel/headers/CollisionArtifact.h)
 
 #[[
 
@@ -40,7 +40,6 @@ add_executable(RealCollaborationCal main.cpp
         headers/RealsenseManager.h headers/RealsenseDeviceProvider.h headers/EigenFileExtension.h)
 
 ]]
-
 
 
 find_package(VTK 8.1 REQUIRED)

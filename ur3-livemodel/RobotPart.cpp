@@ -57,7 +57,6 @@ const Eigen::Vector3d &RobotPart::getWorldRotationRpy() const {
 }
 
 
-//TODO: this should set the artifact's transform to artifact+prev joint's transform, not suitable for joint
 void RobotPart::computeWorldTransformation() {
     Eigen::Affine3d transformer = Eigen::Affine3d::Identity();
     Eigen::AngleAxisd rollAngle(worldRotationRpy[2], Eigen::Vector3d::UnitX());
@@ -70,7 +69,6 @@ void RobotPart::computeWorldTransformation() {
     transformer.pretranslate(getWorldTranslation());
 
 
-    //TODO: get the previous joint for current artifact and transform again with the joint's transform
     if(indexInParentVector-1 >= 0) {
         RobotPart *prevPart = partsList->at(getIndexInParentVector() - 1);
         auto *previousJoint = dynamic_cast<Joint*>(prevPart);
