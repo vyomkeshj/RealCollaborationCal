@@ -38,7 +38,7 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     viewer->addText("Bumblebee", 0, 0, "text", 0);
     viewer->addCoordinateSystem(1.0);
     jointAnglesListener = new RobotJointAngles("192.168.1.101");  //FIXME: add real ip
-    //jointAnglesListener->initializeModbus();
+    //jointAnglesListener->initializeModbus();   //Uncomment to connect to the real robot
     addLineModelsToViewer();
 
     keepPointCloudsUpToDate();
@@ -124,7 +124,6 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
         for(pcl::PointXYZRGB currentPoint: net->points) {
             if(implementedRobotModel.getCurrentRobotState().checkCollisionWithPoint(currentPoint.x, currentPoint.y, currentPoint.z)) {
                 std::cout << "collision detected" << endl;
-                char d=(char)(7);
             }
         }
     }

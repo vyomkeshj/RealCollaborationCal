@@ -16,11 +16,16 @@
 #include <pcl/visualization/cloud_viewer.h>
 using namespace std;
 using namespace rs2;
-
+/*
+ * {@Class RealsenseManager} is a layer built on top of @Class RealsenseDeviceProvider and allows a simple interface to
+ * initialize the cameras and get relevant data from them.
+ * **/
 class RealsenseManager {
 public:
 
-
+    /*
+     * @Param depthFilter is the clipping distance along the z axis of the camera, points after it will be removed
+     * **/
     RealsenseManager(float depthFilter) {
         this->depthFilter = depthFilter;
         initializeCameras();
@@ -36,7 +41,9 @@ public:
     float getDepthScale() {
         return depth_scale;
     }
-
+    /*
+     * returns a openCV matrix of the image after aligning the depth and color frame
+     * **/
     tuple<cv::Mat, depth_frame, video_frame> getCVAlignedMatrix(const string &cameraSerial) {
         grabNewFrames();
         RealsenseDeviceProvider::view_port currentDevice = getCameraStream(cameraSerial);
@@ -67,6 +74,11 @@ public:
             return make_tuple(ir, aligned_depth_frame, other_frame);
         }
 
+    /***
+     *
+     * @param cameraSerial
+     * returns point cloud from camera in pcl::PointXYZRGB format
+     */
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(const string &cameraSerial) {
         RealsenseDeviceProvider::view_port currentViewPort = getCameraStream(cameraSerial);
         rs2::frameset currentFrameset = currentViewPort.current_frameset;
@@ -92,6 +104,10 @@ public:
         return deviceIds;
     }
 
+    /**
+     * Initializes the cameras and sets a callback to check when a camera is connected/disconnected when the program
+     * is running
+     */
     void initializeCameras() {
         rs2::context ctx = provider.getContext();
         ctx.set_devices_changed_callback([&](rs2::event_information &info) {
@@ -124,10 +140,10 @@ public:
 
 private:
     RealsenseDeviceProvider provider;
-    rs2::align *align;
+    rs2::align *align;          ///align object to align the color and depth frames
     int selectedCamera = 0;
     int numberOfAvailableCameras = 0;
-    rs2_stream align_to;
+    rs2_stream align_to;        ///stream from the camera to align the initial stream to
 
     float depth_scale;
     float depthFilter = 0.0f;

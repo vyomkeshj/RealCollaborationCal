@@ -8,6 +8,12 @@
 
 #include <Eigen/Dense>
 
+/*
+ * Represents the line model used to check for collisions of the robot,
+ * uses the part's axis as the axis and joint's origin as it's origin.
+ *
+ * collision is detected by checking if there are distance inlier points to the line below a specified distance.
+ * **/
 class CollisionArtifact {
 public:
     CollisionArtifact(Eigen::Vector3d lineOrigin, Eigen::Vector3d lineAxis, float artifactLength, float artifactRadius);

@@ -10,6 +10,10 @@
 #include <mutex>
 #include <map>
 
+/*
+ * @Class Realsense Viewer is the base layer to communicate with the realsense cameras
+ *  it allows basic features like enabling multiple cameras, keep their list, polling of frames and retrieval of camera data.
+ * **/
 using namespace std;
 const std::string platform_camera_name = "Platform Camera";
 class RealsenseDeviceProvider {
@@ -17,14 +21,19 @@ class RealsenseDeviceProvider {
     //A structure representing each device
 
 public:
-
+    /**
+     * This structure stores the information about the activated cameras
+     * */
     struct view_port
     {
-        rs2::frameset current_frameset;
+        rs2::frameset current_frameset;  //Current Frameset as from the camera, is refreshed in this structure by calling pollFrames();
         rs2::pipeline pipe;
         rs2::pipeline_profile profile;
     };
 
+    /*
+     * Enables the device provided as {@Param dev}, puts it into a list of view_port
+     * **/
     void enableDevice(rs2::device dev)
     {
         std::string serial_number(dev.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER));
@@ -42,17 +51,17 @@ public:
         }
         // Create a pipeline from the given device
         rs2::pipeline p;
-        rs2::config c;
-        c.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);
-        c.enable_stream(RS2_STREAM_INFRARED, 640, 480, RS2_FORMAT_Y8, 30);
-        c.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);
+        rs2::config c;                                                      //configuration of the camera
+        c.enable_stream(RS2_STREAM_COLOR, 640, 480, RS2_FORMAT_BGR8, 30);  //choose the resolution and fps
+        c.enable_stream(RS2_STREAM_INFRARED, 640, 480, RS2_FORMAT_Y8, 30); //Cannot be a random combination, please refer
+        c.enable_stream(RS2_STREAM_DEPTH, 640, 480, RS2_FORMAT_Z16, 30);//realsense documentation for available configurations.
         //c.enable_all_streams();
 
         c.enable_device(serial_number);
 
         // Start the pipeline with the configuration
         try {
-            rs2::pipeline_profile profile = p.start(c);
+            rs2::pipeline_profile profile = p.start(c);     //start pipe p with camera configutation c
             _devices.emplace(serial_number, view_port{ {}, p, profile });
 
         } catch (const rs2::error & e)
@@ -66,7 +75,9 @@ public:
         }
         // Hold it internally
     }
-
+    /*
+     * Removes the device from the list of enabled devices
+     * **/
     void removeDevices(const rs2::event_information& info)
     {
         std::lock_guard<std::mutex> lock(_mutex);
@@ -84,7 +95,9 @@ public:
             }
         }
     }
-
+    /*
+     * Check all cameras for new frames, update their view port with the new frames
+     * **/
     void pollFrames()
     {
         std::lock_guard<std::mutex> lock(_mutex);
@@ -95,16 +108,24 @@ public:
             rs2::frameset frameset;
             if (view.second.pipe.poll_for_frames(&frameset))
             {
-                    view.second.current_frameset = frameset; //update view port with the new stream
+                    view.second.current_frameset = frameset; //update view port with the new frameset
             }
         }
     }
+
+    /**
+     * Returns the number of devices in the enabled devices list
+     * */
     int deviceCount()
     {
         std::lock_guard<std::mutex> lock(_mutex);
         return _devices.size();
     }
 
+    /***
+     * returns the list of enabled cameras
+     * @return _devices, the list of current devices
+     */
     std::map<std::string, view_port>& getEnabledDevices() {
         return _devices;
     }
@@ -115,7 +136,7 @@ public:
 
 private:
     std::mutex _mutex;
-    std::map<std::string, view_port> _devices;
+    std::map<std::string, view_port> _devices;  //map with camera's serial number and view port
     rs2::context context;
 };
 

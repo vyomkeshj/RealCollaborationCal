@@ -19,25 +19,28 @@
 #include "RobotPart.h"
 #include "CollisionArtifact.h"
 
-//Represents a 3D artifact in the scene
+/***
+ *@Class Artifact, Inherits from Robot Part, represents the solid stl parts of the robot, used to create and render
+ * the virtual robot model and the collision model.
+ */
 class Artifact : public RobotPart{
 public:
     Artifact(const std::string &ojectStlFile, std::vector<RobotPart*>* parentListRef, float partRadius, float partLength, int indexInParent);
     virtual ~Artifact();
 
-    const std::string &getOjectStlFile() const;
+    const std::string &getOjectStlFile() const;     ///returns a reference to the stl file name
 
     void setOjectStlFile(const std::string &ojectStlFile);
 
     float getPartRadius() const;
 
-    void setPartRadius(float partRadius);
+    void setPartRadius(float partRadius);       ///sets the radius of the cylindrical segement
 
-    float getPartLength() const;
+    float getPartLength() const;                ///the length of the segement
 
     void setPartLength(float partLength);
 
-    vtkSmartPointer<vtkTransform> getVTKtransform();
+    vtkSmartPointer<vtkTransform> getVTKtransform();    //vtk transform used to align the parts in the QVtk viewer for visualization.
 
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getArtifactPc();
 
@@ -46,7 +49,7 @@ public:
     void addCollisionArtifact(CollisionArtifact *collisionArtifact);
 
 private:
-    std::string ojectStlFile;
+    std::string ojectStlFile;   //Location of the stl file, populated in RobotModelImpl
     vtkSmartPointer<vtkPolyData> objectMesh;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr artifactPc;
     std::vector<CollisionArtifact*> collisionArtifacts;

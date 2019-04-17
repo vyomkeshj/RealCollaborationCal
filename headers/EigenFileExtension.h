@@ -6,7 +6,10 @@
 #define REALCOLLABORATIONCAL_EIGENFILEEXTENSION_H
 
 #include <fstream>
-
+/**
+ * Handles the reading and writing of eigen matrices representing the transformation matrices for each camera to file
+ * The matrices are written in binary format and saved to the location as discribed in
+ * */
 namespace EigenFile{
     template<class Matrix>
     void write_binary(const char* filename, const Matrix& matrix){
