@@ -10,6 +10,9 @@ RobotJointAngles::RobotJointAngles(string cobotIpAddr):
     this->cobotIpAddr = cobotIpAddr;
 }
 
+/*
+ * Must be called after the constructor, connects to the Robot using Modbus
+ * **/
 bool RobotJointAngles::initializeModbus() {
 
     if(bus.modbus_connect()) {
@@ -21,6 +24,10 @@ bool RobotJointAngles::initializeModbus() {
 RobotJointAngles::~RobotJointAngles() {
     delete(&bus);
 }
+
+/*
+ * Reads the Modbus registers to check for the joint angles, angles are returned in mrad
+ * **/
 RobotJointAngles::Joints RobotJointAngles::getJointAngles() {
     Joints currentJointData;
     uint16_t read_input_regs[1];

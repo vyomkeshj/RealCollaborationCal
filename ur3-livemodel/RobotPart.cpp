@@ -6,7 +6,9 @@
 #include <ur3-livemodel/headers/Joint.h>
 
 #include "headers/RobotPart.h"
-
+/**
+ * Encapsulates what is common between Artifacts and Joints, also their parent.
+ * */
 void RobotPart::transformElement(Eigen::Affine3d transform) {
     Eigen::Affine3d newTransform = Eigen::Affine3d::Identity();
     newTransform.matrix() = transform*(worldTransformation.matrix());
@@ -56,7 +58,10 @@ const Eigen::Vector3d &RobotPart::getWorldRotationRpy() const {
     return worldRotationRpy;
 }
 
-
+/*
+ * Computes the world transformation of the part from the parameters, transformation of an artifact depends on the transformation of the previous joint
+ * as the joint provides for the axis of rotation and translation in space.
+ * **/
 void RobotPart::computeWorldTransformation() {
     Eigen::Affine3d transformer = Eigen::Affine3d::Identity();
     Eigen::AngleAxisd rollAngle(worldRotationRpy[2], Eigen::Vector3d::UnitX());

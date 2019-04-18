@@ -10,7 +10,9 @@
 #include <pcl/kdtree/kdtree_flann.h>
 
 using namespace Eigen;
-
+/*
+ * Initialises a RobotModel by the measured parameters from the real robot, links the stl files for rendering
+ * **/
 RobotModelImpl::RobotModelImpl() {
     initializeRobot();
 }
@@ -161,7 +163,7 @@ void RobotModelImpl::initializeRobot() {
 
 
 
-    baseArtifact->computeWorldTransformation();
+    baseArtifact->computeWorldTransformation();         //Notice the order here, populates the transformation matrices according to the parameters
     shoulderPanJoint->computeWorldTransformation();
 
     shoulderLink->computeWorldTransformation();
@@ -183,6 +185,9 @@ std::vector<RobotPart*>* RobotModelImpl::getPartsInSpace() {
     return currentRobotState.getPartsInSequence();
 }
 
+/*
+ * Sets the robot model's joint angles and updates the transformation matrices for all
+ * **/
 void RobotModelImpl::setJointAngles(double angle1, double angle2, double angle3, double angle4, double angle5) {
     currentRobotState.setJointAngles(-currentRobotState.prevAngle1,
                                      -currentRobotState.prevAngle2,

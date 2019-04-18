@@ -12,7 +12,9 @@ CollisionArtifact::CollisionArtifact(Eigen::Vector3d lineOrigin, Eigen::Vector3d
     this->artifactRadius = artifactRadius;
 
 }
-
+/*
+ * The line of collision artifact is represented by the point of origin and the direction vector.
+ * **/
 void CollisionArtifact::transformArtifact(Eigen::Affine3d transform) {
     Eigen::Vector3d transformedElement = transform*lineOrigin;
     this->lineOrigin = transformedElement;
@@ -35,7 +37,9 @@ bool CollisionArtifact::isInlier(double x, double y, double z) {
     return distanceFromOrigin > 0 && distanceFromOrigin < artifactLength && perpendicularVector.norm() < artifactRadius;
 
 }
-
+/*
+ * The collision artifact line's finite endpoint
+ * **/
  Eigen::Vector3d CollisionArtifact::getLineEnd()  {
     double newx= artifactLength*lineAxis[0];
     double newy= artifactLength*lineAxis[1];

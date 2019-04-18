@@ -254,7 +254,9 @@ private:
 
         return cloud;
     }
-
+    /*
+     * get depth scale for the camera's depth output
+     * **/
     float get_depth_scale(rs2::device dev) {
         // Go over the device's sensors
         for (rs2::sensor &sensor : dev.query_sensors()) {

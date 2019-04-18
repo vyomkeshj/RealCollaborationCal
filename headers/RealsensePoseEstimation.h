@@ -10,6 +10,10 @@
 #include <opencv2/aruco/charuco.hpp>
 #include "RealsenseManager.h"
 using namespace cv;
+
+/*
+ * The class that provides aruco detection and pose estimation functionality
+ * **/
 class RealsensePoseEstimation {
 public:
     RealsensePoseEstimation(String cameraParamsPath, float depthFilter):
@@ -51,6 +55,9 @@ public:
         }
     }
 
+    /**
+     * Renders the axes in the video frame for visualisation
+     * */
     tuple<Vec3d, Vec3d> visualizeDetectedAxesAndReturnTransformation(String calibcamId) {
         Vec3d rvec, tvec;
         while(true) {

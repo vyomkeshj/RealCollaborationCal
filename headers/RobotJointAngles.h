@@ -12,7 +12,7 @@
 class RobotJointAngles {
 public:
     struct Joints {
-        double base ;
+        double base ;   ///base joint angle of the robot ...
         double shoulder;
         double elbow;
 
@@ -29,7 +29,7 @@ public:
 
 
 private:
-    string cobotIpAddr;
+    string cobotIpAddr; //The ip address of the robot
     modbus bus;
 };
 

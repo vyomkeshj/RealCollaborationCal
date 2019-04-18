@@ -63,7 +63,7 @@ void Joint::setJointAngleMin(float jointAngleMin) {
 Eigen::Affine3d Joint::getTransformationForSubsequentParts(double angle) const {
     Eigen::Affine3d transformation = Eigen::Affine3d::Identity();
     if(angle<=jointAngleMax && angle >= jointAngleMin) {
-        angle = angle - jointAngle;  //FIXME: the rotation axis and anchor point change
+        angle = angle - jointAngle;  //the rotation axis and anchor point change
         transformation = Eigen::Translation3d(worldTranslation) * Eigen::AngleAxisd(angle, rotationAxis) * Eigen::Translation3d(-worldTranslation);
     }
     return transformation;

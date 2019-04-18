@@ -14,7 +14,13 @@
 
 #include "ur3-livemodel/headers/Artifact.h"
 
-
+/**
+ * Artifact represents the visual stl part in the RobotModel, it also contains collision artifacts, collision artifacts
+ * are lines in 3D estimating the artifact's orientation and are used to simplify collision detection by easing the
+ * compuration required to know the distance of point from the artifact.
+ *
+ * @Param indexInParent is the artifact's position in the RobotModel, base being 0
+ * */
 Artifact::Artifact(const std::string &ojectStlFile, std::vector<RobotPart*>* parentListRef, float partRadius, float partLength, int indexInParent)
 : RobotPart(parentListRef, indexInParent) {
     this->ojectStlFile = ojectStlFile;
@@ -69,6 +75,9 @@ const vtkSmartPointer<vtkPolyData> &Artifact::getPolyMesh() const {
     return objectMesh;
 }
 
+/*
+ * get VtkTransform representation of the transformation matrix of the artifact for rendering purposes.
+ * **/
 vtkSmartPointer<vtkTransform> Artifact::getVTKtransform() {
     vtkSmartPointer<vtkMatrix4x4> m =
             vtkSmartPointer<vtkMatrix4x4>::New();
