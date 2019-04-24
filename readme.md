@@ -30,3 +30,10 @@ robot and using this information along with robot's current position and traject
 
 #### Aruco Based Calibration:
 
+This method employs aruco markers placed alongside every camera and using another camera (Calibration camera), mounted
+at the robot's TCP, the first step involves calibrating the calibration camera to get it's intrinsics, then we use the
+intrinsics with open CV to calculate the pose of the aruco tag (also the pose of the corresponding camera) with respect
+to the calibration camera. We know the transformation from the calibration camera frame to the robot's origin by using
+the TCP pose data provided to us by the robot. We further combine the transformation to get the transformation from the
+camera's perspective to robot's base coordinates.
+
