@@ -38,7 +38,7 @@ the TCP pose data provided to us by the robot. We further combine the transforma
 camera's perspective to robot's base coordinates.
 
 ##### Code Explanation:
-[RealsensePoseEstimation.h] (https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/headers/RealsensePoseEstimation.h)
+[RealsensePoseEstimation.h](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/headers/RealsensePoseEstimation.h)
 
 ```
 /**
@@ -95,7 +95,7 @@ return std::make_tuple(rvec, tvec);
 
 
 ##### Learnings:
-1. [Using a single aruco marker to estimate the pose of the camera is inappropriate] (https://stackoverflow.com/questions/51709522/unstable-values-in-aruco-pose-estimation?noredirect=1&lq=1)
+1. [Using a single aruco marker to estimate the pose of the camera is inappropriate](https://stackoverflow.com/questions/51709522/unstable-values-in-aruco-pose-estimation?noredirect=1&lq=1)
 2. Aruco marker detection requires a brightly lit environment.
 
 ##### Next:
@@ -213,3 +213,35 @@ Algorithm:
                   the number of points when there is no collision.
 ```
 
+Code (Uses single point instead of number of points currently/requires modification for better results):
+```
+/*
+* Calculates distance of the point provided from the artifact line,
+* returns true if the points conforms to the collision definition
+* **/
+bool CollisionArtifact::isInlier(double x, double y, double z) {
+Eigen::Vector3d lineOriginToPointVector(x-lineOrigin[0], y-lineOrigin[1], z-lineOrigin[2]);
+double distanceFromOrigin = lineAxis.dot(lineOriginToPointVector);
+Eigen::Vector3d vectorToIntersectionOfPerpendicular = distanceFromOrigin*lineAxis;
+Eigen::Vector3d perpendicularVector = lineOriginToPointVector - vectorToIntersectionOfPerpendicular;
+
+return distanceFromOrigin > 0 && distanceFromOrigin < artifactLength && perpendicularVector.norm() < artifactRadius;
+
+}
+
+bool RobotModel::checkCollisionWithPoint(float x, float y, float z) {
+for(RobotPart* part :partsInSequence) {
+auto artifact = dynamic_cast<Artifact *>(part);
+if(artifact!= nullptr) {
+for(CollisionArtifact* currentCollisionArtifact: artifact->getCollisionArtifacts()) {
+if(currentCollisionArtifact->isInlier(x, y, z))
+return true;
+    }
+  }
+}
+return false;
+}
+
+```
+
+### 4. Collision Prediction:
