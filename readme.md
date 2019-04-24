@@ -196,3 +196,20 @@ segement for computational simplicity. (to compute distance between a line and t
 5. [RobotModelImpl](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/ur3-livemodel/RobotModelImpl.cpp)
    RobotModelImpl is the top layer of the abstraction, it initializes the RobotModel with the measured parameters of the
    robot and exposes all the user-usable methods for the RobotModel.
+
+##### To enable connection between virtual and real robot:
+[Set the correct ip address here and uncomment initializeModbus()](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/classes/VisionsOfJohanna.cpp#L40)
+##### The part where the drawing occurs
+[Comment out the hardcoded angles and uncomment the lines that sets the values from Modbus](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/classes/VisionsOfJohanna.cpp#L312)
+
+
+### 3. Collision Detection (Using the robot's collision model):
+
+Algorithm:
+```
+        Step1: For-each collision artifact, iterate through points and compute distance from the point to the line.
+        Step2: if (distanceFromPoint<CollisionThreshold), increase a counter that stores the number of close points to that part.
+        Step3: if (counterPoints > numberThreshold) return true for a collision with that part, numberThreshold represents
+                  the number of points when there is no collision.
+```
+
