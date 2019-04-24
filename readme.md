@@ -125,3 +125,38 @@ Tips To Calibrate:
 
 
 ##### Code Explanation:
+[VisionsOfJohanna.cpp](https: //github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/classes/VisionsOfJohanna.cpp)
+` Eigen:: Matrix4d currentTransformer; //contains the previous saved transformation, read from the file `
+
+```
+
+/**
+* Structure storing the data from the sliders, getNetAffineTransformer() returns the transformation matrix corresponding
+* to the slider values and the current transformation of the rendered point-cloud is set to getNetAffineTransformer() * currentTransformer.
+* upon saveCalibration, this new transformation is saved to file and it becomes the currentTransformer for next time.
+*/
+struct afterTransformer{
+double rx = 0;
+double ry = 0;
+double rz = 0;
+
+double x = 0;
+double y = 0;
+double z = 0;
+
+Eigen:: Matrix4d getNetAffineTransformer() {
+Eigen:: Affine3d transformer = Eigen::Affine3d:: Identity();
+Eigen:: AngleAxisd rollAngle(rz, Eigen:: Vector3d:: UnitZ());
+Eigen:: AngleAxisd yawAngle(ry, Eigen:: Vector3d:: UnitY());
+Eigen:: AngleAxisd pitchAngle(rx, Eigen:: Vector3d:: UnitX());
+
+Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+Eigen:: Matrix3d rotationMatrix = q.matrix();
+transformer.pretranslate(Eigen::Vector3d(x/100, y/100, z/100));
+transformer.prerotate(rotationMatrix);
+
+return transformer.matrix();
+}
+}
+```
+
