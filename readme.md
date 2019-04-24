@@ -160,3 +160,39 @@ return transformer.matrix();
 }
 ```
 
+### 2. Virtual Robot Model Implementation.
+        * Visual Model Implementation.
+        * Collision Model Implementation.
+
+        [ModelImplementation](https://github.com/vyomkeshj/RealCollaborationCal/tree/qt_ui/ur3-livemodel)
+#### Visual Model Implementation:
+
+Visual model of the robot is the robot's rendering in the software, this model is implemented mainly to assist calibration
+by allowing the user to have a common element between the point-clouds and the real world before the calibration process.
+The visual model of the robot connects to the real robot using MODBUS, joint angles of each joint are read by the software
+and they are used to align different stl files for each part in such a way that the virtual robot assumes the shape of the
+real robot.
+
+Collision Model of the robot is the line model implementation of the robot where every part is represented using a line
+segement for computational simplicity. (to compute distance between a line and the points in the point-clouds is easier)
+
+##### List of files and their reason for existence:
+
+1. [Artifact](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/ur3-livemodel/Artifact.cpp)
+   Artifact represents every element of the robot and stores the reference to the stl file for that element,
+   It also stores the CollisionArtifacts for that part (corresponding line model).
+
+2. [Joint](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/ur3-livemodel/Joint.cpp)
+   Joint represents the joint between two artifacts, it contains the reference to both the artifacts and keeps their
+   current rotation axis.
+
+3. [RobotPart](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/ur3-livemodel/RobotPart.cpp)
+   Both Joint and Artifact derive from RobotPart, it stores the part's transformation in space.
+
+4. [RobotModel](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/ur3-livemodel/RobotModel.cpp)
+   RobotModel has a list of the joints and artifacts in the robot, it exposes the method to set joint angles and also
+   a check for if a part has a collision with a point in the pointcloud.
+
+5. [RobotModelImpl](https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/ur3-livemodel/RobotModelImpl.cpp)
+   RobotModelImpl is the top layer of the abstraction, it initializes the RobotModel with the measured parameters of the
+   robot and exposes all the user-usable methods for the RobotModel.
