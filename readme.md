@@ -37,3 +37,66 @@ to the calibration camera. We know the transformation from the calibration camer
 the TCP pose data provided to us by the robot. We further combine the transformation to get the transformation from the
 camera's perspective to robot's base coordinates.
 
+##### Code Explanation:
+[RealsensePoseEstimation.h] (https://github.com/vyomkeshj/RealCollaborationCal/blob/qt_ui/headers/RealsensePoseEstimation.h)
+
+```
+/**
+* Gets the transformation from aruco to calibration camera given the calibration camera id
+* @Param calibcamId
+*/
+tuple<Vec3d, Vec3d> visualizeDetectedAxesAndReturnTransformation(String calibcamId) {
+Vec3d rvec, tvec;
+while(true) {
+Mat imageCopy;
+realsenseManager.getConnectedDeviceIds();
+auto[image, depth_information, video_frame] = this->realsenseManager.getCVAlignedMatrix(calibcamId); //Returns aligned video frame and depth frame
+
+double tick = (double)getTickCount();
+
+vector< int > markerIds;
+vector< vector< Point2f > > markerCorners, rejectedMarkers; //To store the detected marker corners and rejected markers
+
+// detect markers in the image
+aruco::detectMarkers(image, dictionary, markerCorners, markerIds, detectorParams,
+rejectedMarkers);
+
+double currentTime = ((double)getTickCount() - tick) / getTickFrequency();
+totalTime += currentTime;
+totalIterations++;
+if(totalIterations % 30 == 0) {
+cout << "Detection Time = " << currentTime * 1000 << " ms "
+<< "(Mean = " << 1000 * totalTime / double(totalIterations) << " ms)" << endl;
+}
+
+// draw results
+image.copyTo(imageCopy);
+if(markerIds.size() > 0) {
+aruco::drawDetectedMarkers(imageCopy, markerCorners);
+}
+if(showRejected && rejectedMarkers.size() > 0)
+aruco::drawDetectedMarkers(imageCopy, rejectedMarkers, noArray(), Scalar(100, 0, 255));
+
+for (auto& currentMarker: markerCorners) {
+calculateArucoPose(0.09, currentMarker, rvec, tvec, depth_information);   //estimate pose for the aruco marker
+}
+
+aruco::drawAxis(imageCopy, camMatrix, distCoeffs, rvec, tvec, 0.1);
+//getEstimatedPose();
+//printMatrix(rvec);
+//applyColorMap(imageCopy, imageCopy, COLORMAP_JET);
+imshow("Pose Estimator", imageCopy);    //visualize result
+char key = (char)waitKey(waitTime);
+if(key == 27) break;
+}
+return std::make_tuple(rvec, tvec);
+}```
+
+
+##### Learnings:
+1. [Using a single aruco marker to estimate the pose of the camera is inappropriate] (https://stackoverflow.com/questions/51709522/unstable-values-in-aruco-pose-estimation?noredirect=1&lq=1)
+2. Aruco marker detection requires a brightly lit environment.
+
+##### Next:
+
+1. Use multiple markers to improve detection accuracy.
