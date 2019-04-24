@@ -101,3 +101,27 @@ return std::make_tuple(rvec, tvec);
 ##### Next:
 
 1. Use multiple markers to improve detection accuracy.
+
+#### GUI Based Manual Calibration:
+
+This method uses a GUI to allow the user to move point-clouds in space and align them in the required fashion,
+the user is provided with 6 silders, 3 for rotation and 3 for translation, by changing the slider values, the user can calibrate
+the pointclouds to one origin.
+
+##### Steps to calibrate:
+1. Choose the camera to be calibrated.
+2. Toggle Robot's virtual model/ Toggle tinting of the point-clouds to your preference.
+3. Click Start-Calibration
+4. Move the translation sliders such that the Robot's origin in the pointcloud coincides with the origin in the visualisation.
+5. Move the rotation sliders to rotate the clouds correctly along the axes.
+6. Click save-calibration and repeat for other cameras.
+
+Tips To Calibrate:
+* Translate before rotate
+* Use the mouse-wheel to perform precise movements.
+* Check the tinted view for a better visualization of the overlap.
+* While rotating/translating about/along an axis, set the visualiser in such a way that the movement is clear, ie
+  when rotating about x axis, it's better to look along y or x axis pointing outwards the screen.
+
+
+##### Code Explanation:
