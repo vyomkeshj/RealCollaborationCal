@@ -1,15 +1,15 @@
 # Real Collaboration Cal
-##Live obstacle tracking and collision prediction in collaborative robot workspaces.
+## Live obstacle tracking and collision prediction in collaborative robot workspaces.
 
 
-###Required Libraries:
+### Required Libraries:
 1. Realsense 2 (Intel Realsense library for the realsense cameras).
 2. PCL 1.9.1 (Built with visualisation support)
 3. OpenCV 4
 4. Qt 5
 5. VTK 8.1
 
-##Introduction:
+## Introduction:
 Collaborative robots are supposed to work right alongside their human counterparts, although safety remains
 a concern while considering the high speeds (high momentum) the robots may be working at and any collision with the
 human worker therefore has the potential to hurt. The current safetly methods employed are usually boundaries imposed
@@ -22,6 +22,11 @@ robot and using this information along with robot's current position and traject
 
 
 
-##Steps:
+## Steps:
 
 ### 1. Calibration:
+      * Aruco Based Calibration
+      * GUI Based Manual Calibration
+
+#### Aruco Based Calibration:
+
