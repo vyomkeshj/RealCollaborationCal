@@ -100,16 +100,18 @@ public:
      * **/
     void pollFrames()
     {
-        std::lock_guard<std::mutex> lock(_mutex);
-        // Go over all device
-        for (auto&& view : _devices)
-        {
-            // Ask each pipeline if there are new frames available
-            rs2::frameset frameset;
-            if (view.second.pipe.poll_for_frames(&frameset))
-            {
+        try {
+            std::lock_guard<std::mutex> lock(_mutex);
+            // Go over all device
+            for (auto &&view : _devices) {
+                // Ask each pipeline if there are new frames available
+                rs2::frameset frameset;
+                if (view.second.pipe.poll_for_frames(&frameset)) {
                     view.second.current_frameset = frameset; //update view port with the new frameset
+                }
             }
+        } catch (rs2::error &e) {
+            std::cout<<"realsense frame capture failed";
         }
     }
 

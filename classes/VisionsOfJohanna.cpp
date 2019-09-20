@@ -7,6 +7,7 @@
 #include <headers/RealsenseManager.h>
 
 #include "visionsofjohanna.hpp"
+#include <QThread>
 #include <QVTKWidget.h>
 #include <headers/CameraTagInBaseCoordinates.h>
 #include "ui_visionsofjohanna.h"
@@ -18,12 +19,12 @@
 #include <pcl/segmentation/region_growing.h>
 #include <pcl/segmentation/region_growing_rgb.h>
 #include <ur3-livemodel/headers/Artifact.h>
-#include <headers/visionsofjohanna.hpp>
 #include <pcl/io/pcd_io.h>
+#include <headers/BehindVisionsOfJohanna.h>
 #include "ncurses.h"
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
-RealsenseManager manager(1.0f);
+//RealsenseManager manager(1.0f);
 
 VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
         QMainWindow(parent),
@@ -35,15 +36,16 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     viewer->setupInteractor(ui->pclRendererVTKWidget->GetInteractor(),
                             ui->pclRendererVTKWidget->GetRenderWindow());
     ui->pclRendererVTKWidget->update();
-    viewer->addText("Bumblebee", 0, 0, "text", 0);
     viewer->addCoordinateSystem(1.0);
-    jointAnglesListener = new RobotJointAngles("192.168.1.101");  //FIXME: add real ip
-    //jointAnglesListener->initializeModbus();   //Uncomment to connect to the real robot
+
+
+//    jointAnglesListener = new RobotJointAngles("192.168.1.101");  //FIXME: add real ip
+  //  jointAnglesListener->initializeModbus();   //Uncomment to connect to the real robot
     addLineModelsToViewer();
 
-    keepPointCloudsUpToDate();
-    updateFrameRobotModel();
-    updateDeviceList();
+    //keepPointCloudsUpToDate();
+    //updateFrameRobotModel();
+    //updateDeviceList();
     setupSliders();
     //connect(ui->saveCurrent, SIGNAL (clicked()), this, SLOT (enableTogglePressed()));
     connect(ui->calibrateSelectedCameraButton, SIGNAL (clicked()), this, SLOT(startCalibration()));
@@ -59,31 +61,62 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     connect(ui->toggleColorButton, SIGNAL (clicked()), this, SLOT(changePointCloudColorBehaviour()));
     connect(ui->toggleModelButton, SIGNAL (clicked()), this, SLOT(changeModelVisibility()));
 
+    QThread *thread = new QThread(parent);
+    BehindVisionsOfJohanna *updater = new BehindVisionsOfJohanna();
+    updater->moveToThread(thread);
+    connect(updater, SIGNAL(updatePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr)), this, SLOT(keepPointCloudsUpToDate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr)));
+    connect(thread, SIGNAL(destroyed()), updater, SLOT(deleteLater()));
+    connect(thread, SIGNAL(started()), updater, SLOT(startStreaming()));
+
+    thread->start();
+
     QTimer *pointCloudUpdateTimer = new QTimer(this);
-    pointCloudUpdateTimer->setInterval( 10);
+    pointCloudUpdateTimer->setInterval( 2000);
     connect(pointCloudUpdateTimer, SIGNAL(timeout()), this, SLOT(repaintPointCloud()));
     pointCloudUpdateTimer->start();
+
+
 }
 
 VisionsOfJohanna::~VisionsOfJohanna() {
     delete ui;
 }
 
+/*
 pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getPointCloudFromCamera(int camera) {
     manager.grabNewFrames();
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr p_n_cloud_c;
     std::vector<string> deviceNames = manager.getConnectedDeviceIds();
     return manager.getPointCloudFromCamera(deviceNames[camera]);
 }
+ */
 
 void VisionsOfJohanna::enableTogglePressed() {
     isCurrentPointcloudToBeSaved = true;
 }
 
-void VisionsOfJohanna::keepPointCloudsUpToDate() {
-    manager.grabNewFrames(); //updates the frameset in the structure
-    std::vector<string> deviceNames = manager.getConnectedDeviceIds();
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr net(new pcl::PointCloud<pcl::PointXYZRGB>);
+void VisionsOfJohanna::keepPointCloudsUpToDate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcloud) {
+    //manager.grabNewFrames(); //updates the frameset in the structure
+    //std::vector<string> deviceNames = manager.getConnectedDeviceIds();
+    //pcl::PointCloud<pcl::PointXYZRGB>::Ptr net(new pcl::PointCloud<pcl::PointXYZRGB>);
+
+/*    std::vector<std::string> connectedCameras = phoxiCamInterface.cameraList();
+    bool second = false;
+    for(const std::string camera: connectedCameras ) {
+
+            if(!second) {
+                phoxiCamInterface.connectCamera(camera);
+
+                std::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> greatCloud = phoxiCamInterface.getPointCloud();
+                pcl::PointCloud<pcl::PointXYZ> oneCloud = *greatCloud;
+                pcl::PointCloud<pcl::PointXYZ>::Ptr convertedCloud = oneCloud.makeShared();
+
+                if(!viewer->addPointCloud(convertedCloud, camera))
+                    viewer->updatePointCloud(convertedCloud, camera);
+            }
+        second = true;
+    }*/
+/*
     for (const string &currentDevice: deviceNames) {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
                 manager.getPointCloudFromCamera(currentDevice);
@@ -111,6 +144,7 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
 
 
         }
+
         if (!viewer->updatePointCloud(currentPc, currentDevice)) {
             viewer->addPointCloud(currentPc, currentDevice);
         }
@@ -120,15 +154,17 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
         }
 
         //Checking collisions here
-        #pragma omp parallel for
+       */
+/* #pragma omp parallel for
         for(pcl::PointXYZRGB currentPoint: net->points) {
             if(implementedRobotModel.getCurrentRobotState().checkCollisionWithPoint(currentPoint.x, currentPoint.y, currentPoint.z)) {
                 std::cout << "collision detected" << endl;
             }
-        }
+        }*//*
+
     }
     //completePc = getSegementedPc(completePc);
-    updateFrameRobotModel();
+    //updateFrameRobotModel();
     addLineModelsToViewer();
     //pcPublisher.setPointCloud(*completePc);
 
@@ -137,11 +173,17 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
     //viewer->addPointCloud(from, "icp");
     //}
 
+*/
     //viewer->resetCamera();
+    if (!viewer->updatePointCloud(pcloud, "net")) {
+        viewer->addPointCloud(pcloud, "net");
+    }
+
     ui->pclRendererVTKWidget->show();
     ui->pclRendererVTKWidget->update();
 }
 
+/*
 void VisionsOfJohanna::updateDeviceList() {
     std::vector<string> deviceNames = manager.getConnectedDeviceIds();
     for (const string &currentDevice: deviceNames) {
@@ -149,7 +191,7 @@ void VisionsOfJohanna::updateDeviceList() {
         ui->cameraListWidget->addItem(new QListWidgetItem(itemName));
     }
 }
-
+*/
 void VisionsOfJohanna::updateSelectedDevice(QListWidgetItem *item) {
     this->selectedDevice = item;
 }
@@ -179,7 +221,7 @@ void VisionsOfJohanna::rotationZSliderChanged(int sliderval) {
         Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
 
-        addOrUpdatepointcloud(serial, netTransform);
+        //addOrUpdatepointcloud(serial, netTransform);
 
     }
 }
@@ -190,7 +232,7 @@ void VisionsOfJohanna::rotationYSliderChanged(int sliderval) {
         //transform the pointcloud with the new value
         Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
-        addOrUpdatepointcloud(serial, netTransform);
+        //addOrUpdatepointcloud(serial, netTransform);
     }
 }
 
@@ -200,7 +242,7 @@ void VisionsOfJohanna::rotationXSliderChanged(int sliderval) {
         //transform the pointcloud with the new value
         Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
-        addOrUpdatepointcloud(serial, netTransform);
+        //addOrUpdatepointcloud(serial, netTransform);
     }
 }
 
@@ -211,7 +253,7 @@ void VisionsOfJohanna::translationXSliderChanged(int sliderval) {
         //transform the pointcloud with the new value
         Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
-        addOrUpdatepointcloud(serial, netTransform);
+        //addOrUpdatepointcloud(serial, netTransform);
     }
 }
 
@@ -221,7 +263,7 @@ void VisionsOfJohanna::translationYSliderChanged(int sliderval) {
         //transform the pointcloud with the new valuesetDistanceThreshold
         Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
-        addOrUpdatepointcloud(serial, netTransform);
+        //addOrUpdatepointcloud(serial, netTransform);
     }
 }
 
@@ -231,7 +273,7 @@ void VisionsOfJohanna::translationZSliderChanged(int sliderval) {
         //transform the pointcloud with the new value
         Eigen::Matrix4d netTransform = transformer.getNetAffineTransformer()*currentTransformer;
         std::string serial = this->selectedDevice->text().toUtf8().constData();
-        addOrUpdatepointcloud(serial, netTransform);
+        //addOrUpdatepointcloud(serial, netTransform);
     }
 }
 
@@ -260,6 +302,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getSegementedPc(pcl::Po
     return colored_cloud;
 }
 
+/*
 void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4d transform) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
             manager.getPointCloudFromCamera(deviceSerial);
@@ -278,10 +321,14 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
     ui->pclRendererVTKWidget->update();
 
 }
+ */
 
 void VisionsOfJohanna::repaintPointCloud() {
     if (!isCalibrationEnabled)
-        keepPointCloudsUpToDate();
+    {
+
+    }
+        //keepPointCloudsUpToDate();
 }
 
 void VisionsOfJohanna::saveCalibration() {
@@ -310,11 +357,11 @@ void VisionsOfJohanna::saveCalibration() {
  * Keeps the robot models (Line+visual up)
  * **/
 void VisionsOfJohanna::updateFrameRobotModel() {
-   // RobotJointAngles::Joints jointStat = jointAnglesListener->getJointAngles();
-    //implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
-    //        jointStat.wrist1, jointStat.wrist2);
-    implementedRobotModel.setJointAngles(PI/3, PI/3, PI/3,
-                                         PI/3, PI/3);
+    RobotJointAngles::Joints jointStat = jointAnglesListener->getJointAngles();
+    implementedRobotModel.setJointAngles(jointStat.base, jointStat.shoulder, jointStat.elbow,
+            jointStat.wrist1, jointStat.wrist2);
+    //implementedRobotModel.setJointAngles(PI/3, PI/3, PI/3,
+     //                                    PI/3, PI/3);
 
     viewer->removeAllShapes();
     //addLineModelsToViewer();                          //Uncomment to show a line model trail of the robot
@@ -381,4 +428,8 @@ void VisionsOfJohanna::addLineModelsToViewer() {
 }
 void VisionsOfJohanna::changePointCloudColorBehaviour() {
     arePointCloudsColorful = !arePointCloudsColorful;
+}
+
+bool VisionsOfJohanna::isArePointCloudsColorful() const {
+    return arePointCloudsColorful;
 }

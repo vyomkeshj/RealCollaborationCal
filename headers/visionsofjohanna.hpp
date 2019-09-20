@@ -11,7 +11,6 @@
 #define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
 
 #include <QMainWindow>
-#include <vtkRenderWindow.h>
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -20,7 +19,11 @@
 #include <QtWidgets/QListWidget>
 #include <ur3-livemodel/headers/RobotModelImpl.h>
 #include "RobotJointAngles.h"
+#include "PhoXiInterface.h"
 #include <Eigen/Dense>
+#include <PhoXiInterface.h>
+
+#include <vtkRenderWindow.h>
 
 namespace Ui {
     class VisionsOfJohanna;
@@ -30,9 +33,12 @@ class VisionsOfJohanna : public QMainWindow
 {
     Q_OBJECT
 
+
 public:
     explicit VisionsOfJohanna(QWidget *parent = nullptr);
     ~VisionsOfJohanna();
+    void tintPointcloud(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcld, int r, int g, int b);
+
 
 public Q_SLOTS:
     void enableTogglePressed();
@@ -53,6 +59,9 @@ public Q_SLOTS:
     void updateSelectedDevice(QListWidgetItem *item);
     void repaintPointCloud();
     void updateFrameRobotModel();
+
+    void keepPointCloudsUpToDate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcloud);
+
 private:
     struct afterTransformer{
         double rx = 0;
@@ -89,18 +98,22 @@ private:
     Eigen::Matrix4d currentTransformer;
     QListWidgetItem *selectedDevice;
     RobotModelImpl implementedRobotModel;
-    void keepPointCloudsUpToDate();
     void addLineModelsToViewer();
     void updateDeviceList();
     void setupSliders();
-    void addOrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);
+    void /*add*/OrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);
     pcl::PointCloud <pcl::PointXYZRGB>::Ptr getSegementedPc(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcIn);
-    void tintPointcloud(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcld, int r, int g, int b);
+
     RobotJointAngles *jointAnglesListener;
     bool isModelVisible = true;
     bool arePointCloudsColorful = false;
+public:
+    bool isArePointCloudsColorful() const;
+
+private:
     bool isCurrentPointcloudToBeSaved = false;
     std::map<std::string, Eigen::Matrix4d> calibrationMap;
+    phoxi_camera::PhoXiInterface phoxiCamInterface;
 };
 
 #endif

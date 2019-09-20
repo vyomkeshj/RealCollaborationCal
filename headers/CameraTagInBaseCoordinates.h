@@ -15,7 +15,6 @@
 #include <headers/EigenFileExtension.h>
 #include <QtCore/QTextStream>
 
-using namespace pcl;
 namespace CameraFrameTransformer {
 
     /*
@@ -24,7 +23,7 @@ namespace CameraFrameTransformer {
      *  @cameraSerial is the serial number of the choosen camera
      *
      * **/
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPcloudWithAffine(  pcl::PointCloud<pcl::PointXYZRGB>::Ptr initial,
+    inline pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPcloudWithAffine(  pcl::PointCloud<pcl::PointXYZRGB>::Ptr initial,
                                                                     char* cameraSerial) {
         Eigen::Matrix4d transformer;
         EigenFile::read_binary(cameraSerial, transformer);
@@ -35,7 +34,7 @@ namespace CameraFrameTransformer {
         return transformed_cloud;
     }
 
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPcloudWithAffine(  pcl::PointCloud<pcl::PointXYZRGB>::Ptr initial,
+    inline pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPcloudWithAffine(  pcl::PointCloud<pcl::PointXYZRGB>::Ptr initial,
                                                                        Eigen::Matrix4d transformer) {
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
             pcl::transformPointCloud (*initial, *transformed_cloud, transformer);
@@ -46,7 +45,7 @@ namespace CameraFrameTransformer {
     /*
      * Get the affine transformation matrix for the camera from the camera file
      * **/
-    Eigen::Matrix4d getAffineMatrixForCamera(std::string cameraSerial) {
+    inline Eigen::Matrix4d getAffineMatrixForCamera(std::string cameraSerial) {
             Eigen::Matrix4d transformer;
             EigenFile::read_binary( ("/home/rob-ot/Documents/calibration/Camera70540/"+cameraSerial+".dat")
             .c_str(), transformer);
@@ -62,7 +61,7 @@ namespace CameraFrameTransformer {
      *@Param source is the source pointcloud
      *@Param target is the target pointcloud
      ***/
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPcloudWithIcp(pcl::PointCloud<pcl::PointXYZRGB>::Ptr source,
+    inline pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformPcloudWithIcp(pcl::PointCloud<pcl::PointXYZRGB>::Ptr source,
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr target) {
 
             pcl::IterativeClosestPoint<pcl::PointXYZRGB, pcl::PointXYZRGB> icp;
@@ -84,4 +83,4 @@ namespace CameraFrameTransformer {
 
 };
 
-#endif //REALCOLLABORATIONCAL_CAMERATAGINBASECOORDINATES_H
+#endif REALCOLLABORATIONCAL_CAMERATAGINBASECOORDINATES_H

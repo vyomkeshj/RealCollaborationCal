@@ -82,9 +82,13 @@ public:
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr getPointCloudFromCamera(const string &cameraSerial) {
         RealsenseDeviceProvider::view_port currentViewPort = getCameraStream(cameraSerial);
         rs2::frameset currentFrameset = currentViewPort.current_frameset;
-
-        rs2::video_frame currentVideoFrame = currentFrameset.first(RS2_STREAM_COLOR);
+        std::cout<<"1"<<std::endl;
         rs2::video_frame currentDepthFrame = currentFrameset.first(RS2_STREAM_DEPTH);
+
+        std::cout<<"2"<<std::endl;
+        rs2::video_frame currentVideoFrame = currentFrameset.first(RS2_STREAM_COLOR);
+
+        std::cout<<"3"<<std::endl;
 
         rs2::pointcloud pc;
         pc.map_to(currentVideoFrame);
@@ -126,7 +130,7 @@ public:
         std::cout<<"number of connected RealsenseDevices = "<<getNumberOfDevices()<<std::endl;
 
         for (int i = 0; i < 100; i++) {
-            grabNewFrames();
+            grabNewFrames(); //exposure stablization
         }
     }
 
