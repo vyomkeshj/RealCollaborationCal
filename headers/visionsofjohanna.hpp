@@ -9,9 +9,9 @@
 #define VISIONSOFJOHANNA_H
 #define vtkRenderingCore_AUTOINIT4(vtkInteractionStyle,vtkRenderingFreeType,vtkRenderingFreeTypeOpenGL,tkRenderingOpenGL)
 #define vtkRenderingVolume_AUTOINIT 1(vtkRenderingVolumeOpenGL)
+#include <headers/RealsenseManager.h>
 
 #include <QMainWindow>
-
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/filters/statistical_outlier_removal.h>
@@ -60,7 +60,7 @@ public Q_SLOTS:
     void repaintPointCloud();
     void updateFrameRobotModel();
 
-    void keepPointCloudsUpToDate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcloud);
+    void keepPointCloudsUpToDate();
 
 private:
     struct afterTransformer{
@@ -101,12 +101,13 @@ private:
     void addLineModelsToViewer();
     void updateDeviceList();
     void setupSliders();
-    void /*add*/OrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);
+    void addOrUpdatepointcloud(std::string deviceSerial, Eigen::Matrix4d transform);
     pcl::PointCloud <pcl::PointXYZRGB>::Ptr getSegementedPc(pcl::PointCloud <pcl::PointXYZRGB>::Ptr pcIn);
 
     RobotJointAngles *jointAnglesListener;
     bool isModelVisible = true;
     bool arePointCloudsColorful = false;
+    RealsenseManager manager;
 public:
     bool isArePointCloudsColorful() const;
 

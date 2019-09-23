@@ -83,16 +83,19 @@ public:
         RealsenseDeviceProvider::view_port currentViewPort = getCameraStream(cameraSerial);
         rs2::frameset currentFrameset = currentViewPort.current_frameset;
         std::cout<<"1"<<std::endl;
-        rs2::video_frame currentDepthFrame = currentFrameset.first(RS2_STREAM_DEPTH);
+        rs2::depth_frame currentDepthFrame = currentFrameset.get_depth_frame();
 
         std::cout<<"2"<<std::endl;
-        rs2::video_frame currentVideoFrame = currentFrameset.first(RS2_STREAM_COLOR);
+        rs2::video_frame currentVideoFrame = currentFrameset.get_color_frame();
 
         std::cout<<"3"<<std::endl;
 
         rs2::pointcloud pc;
+
         pc.map_to(currentVideoFrame);
-        auto points = pc.calculate(currentDepthFrame);
+        rs2::points points = pc.calculate(currentDepthFrame);
+
+        std::cout<<"4"<<std::endl;
 
         return convertToPclCloud(points, currentVideoFrame);
     }

@@ -6,9 +6,10 @@
 #define REALCOLLABORATIONCAL_BEHINDVISIONSOFJOHANNA_H
 
 
-#include <QtCore/QObject>
-#include "visionsofjohanna.hpp"
 #include "RealsenseManager.h"
+#include "visionsofjohanna.hpp"
+
+#include <QtCore/QObject>
 
 /**
  * Manage the data streams to the UI and perform computations on a worker thread
@@ -18,7 +19,7 @@ class BehindVisionsOfJohanna : public QObject {
 Q_OBJECT
 
 public:
-    explicit BehindVisionsOfJohanna(QObject *parent = 0) :QObject(parent), manager(1.5f) {}
+    explicit BehindVisionsOfJohanna(QObject *parent = 0) :QObject(parent) {}
     void setParent(VisionsOfJohanna *johannaHerself);
 
 public Q_SLOTS:
@@ -31,7 +32,7 @@ public Q_SLOTS:
 
 private:
     VisionsOfJohanna* johanna;
-    RealsenseManager manager;
+    RealsenseManager* manager;
     bool isStreaming = false;
 
 };
