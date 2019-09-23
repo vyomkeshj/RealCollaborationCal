@@ -7,13 +7,13 @@
 //
 // Created by rob-ot on 29.1.19.
 //
+#include <QtCore/QTextStream>
 #include <pcl/common/transforms.h>
 
 #include <pcl/impl/point_types.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl/registration/icp.h>
 #include <headers/EigenFileExtension.h>
-#include <QtCore/QTextStream>
 
 namespace CameraFrameTransformer {
 

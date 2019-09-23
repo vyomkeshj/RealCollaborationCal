@@ -6,6 +6,7 @@
 //
 #include <headers/RealsenseManager.h>
 
+#include "visionsofjohanna.hpp"
 #include <QThread>
 #include <QVTKWidget.h>
 #include <headers/CameraTagInBaseCoordinates.h>
@@ -21,14 +22,12 @@
 #include <pcl/io/pcd_io.h>
 #include <headers/BehindVisionsOfJohanna.h>
 #include "ncurses.h"
-#include "visionsofjohanna.hpp"
 
 pcl::visualization::PCLVisualizer::Ptr viewer;
 //RealsenseManager manager(1.0f);
 
 VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
         QMainWindow(parent),
-        manager(1.5f),
         ui(new Ui::VisionsOfJohanna) {
     ui->setupUi(this);
 
@@ -44,7 +43,7 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
   //  jointAnglesListener->initializeModbus();   //Uncomment to connect to the real robot
     addLineModelsToViewer();
 
-    keepPointCloudsUpToDate();
+    //keepPointCloudsUpToDate();
     //updateFrameRobotModel();
     //updateDeviceList();
     setupSliders();
@@ -61,17 +60,18 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
     connect(ui->z_slider, SIGNAL (valueChanged(int)), this, SLOT(translationZSliderChanged(int)));
     connect(ui->toggleColorButton, SIGNAL (clicked()), this, SLOT(changePointCloudColorBehaviour()));
     connect(ui->toggleModelButton, SIGNAL (clicked()), this, SLOT(changeModelVisibility()));
+    qRegisterMetaType<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>("pcl::PointCloud<pcl::PointXYZRGB>::Ptr");
 
     QThread *thread = new QThread(parent);
     BehindVisionsOfJohanna *updater = new BehindVisionsOfJohanna();
-    //updater->moveToThread(thread);
-   // connect(updater, SIGNAL(updatePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr)), this, SLOT(keepPointCloudsUpToDate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr)));
-    //connect(thread, SIGNAL(destroyed()), updater, SLOT(deleteLater()));
-    //connect(thread, SIGNAL(started()), updater, SLOT(startStreaming()));
-   // thread->start();
-    //thread->setPriority(QThread::HighPriority);
+    updater->moveToThread(thread);
+    connect(updater, SIGNAL(updatePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr)), this,
+            SLOT(keepPointCloudsUpToDate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr)), Qt::QueuedConnection);
+    connect(thread, SIGNAL(destroyed()), updater, SLOT(deleteLater()));
+    connect(thread, SIGNAL(started()), updater, SLOT(startStreaming()));
 
-    updater->startStreaming();
+    thread->start();
+
     QTimer *pointCloudUpdateTimer = new QTimer(this);
     pointCloudUpdateTimer->setInterval( 2000);
     connect(pointCloudUpdateTimer, SIGNAL(timeout()), this, SLOT(repaintPointCloud()));
@@ -97,10 +97,10 @@ void VisionsOfJohanna::enableTogglePressed() {
     isCurrentPointcloudToBeSaved = true;
 }
 
-void VisionsOfJohanna::keepPointCloudsUpToDate() {
-    manager.grabNewFrames(); //updates the frameset in the structure
-    std::vector<string> deviceNames = manager.getConnectedDeviceIds();
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr net(new pcl::PointCloud<pcl::PointXYZRGB>);
+void VisionsOfJohanna::keepPointCloudsUpToDate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcloud) {
+    //manager.grabNewFrames(); //updates the frameset in the structure
+    //std::vector<string> deviceNames = manager.getConnectedDeviceIds();
+    //pcl::PointCloud<pcl::PointXYZRGB>::Ptr net(new pcl::PointCloud<pcl::PointXYZRGB>);
 
 /*    std::vector<std::string> connectedCameras = phoxiCamInterface.cameraList();
     bool second = false;
@@ -118,31 +118,31 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
             }
         second = true;
     }*/
-
+/*
     for (const string &currentDevice: deviceNames) {
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
                 manager.getPointCloudFromCamera(currentDevice);
-        //Fixme: remove redundant code
+            //Fixme: remove redundant code
         if (currentDevice == "817612070540") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070540.dat");
-            if (arePointCloudsColorful)
-                tintPointcloud(currentPc, 100, 0, 0);
-            *net = *net + *currentPc;
+            if(arePointCloudsColorful)
+                tintPointcloud(currentPc, 100, 0 , 0);
+            *net = *net+*currentPc;
             //continue;
         } else if (currentDevice == "817612071554") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612071554.dat");
-            if (arePointCloudsColorful)
-                tintPointcloud(currentPc, 0, 100, 0);
-            *net = *net + *currentPc;
+            if(arePointCloudsColorful)
+                tintPointcloud(currentPc, 0, 100 , 0);
+            *net = *net+*currentPc;
 
         } else if (currentDevice == "817612070983") {
             currentPc = CameraFrameTransformer::transformPcloudWithAffine
                     (currentPc, "/home/rob-ot/Documents/calibration/Camera70540/817612070983.dat");
-            if (arePointCloudsColorful)
-                tintPointcloud(currentPc, 0, 0, 100);
-            *net = *net + *currentPc;
+            if(arePointCloudsColorful)
+                tintPointcloud(currentPc, 0, 0 , 100);
+            *net = *net+*currentPc;
 
 
         }
@@ -150,13 +150,13 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
         if (!viewer->updatePointCloud(currentPc, currentDevice)) {
             viewer->addPointCloud(currentPc, currentDevice);
         }
-        if (isCurrentPointcloudToBeSaved) {
+        if(isCurrentPointcloudToBeSaved) {
             isCurrentPointcloudToBeSaved = false;
-            pcl::io::savePCDFileASCII("/home/rob-ot/Documents/calibration/Camera70540/saved_pointcloud.pcd", *net);
+            pcl::io::savePCDFileASCII ("/home/rob-ot/Documents/calibration/Camera70540/saved_pointcloud.pcd", *net);
         }
 
         //Checking collisions here
-
+       */
 /* #pragma omp parallel for
         for(pcl::PointXYZRGB currentPoint: net->points) {
             if(implementedRobotModel.getCurrentRobotState().checkCollisionWithPoint(currentPoint.x, currentPoint.y, currentPoint.z)) {
@@ -176,17 +176,16 @@ void VisionsOfJohanna::keepPointCloudsUpToDate() {
     //}
 
 */
-        //viewer->resetCamera();
-/*
-        if (!viewer->updatePointCloud(pcloud, "net")) {
-            viewer->addPointCloud(pcloud, "net");
-        }
-*/
-
-        ui->pclRendererVTKWidget->show();
-        ui->pclRendererVTKWidget->update();
+    //viewer->resetCamera();
+    if (!viewer->updatePointCloud(pcloud, "net")) {
+        viewer->addPointCloud(pcloud, "net");
     }
+
+    ui->pclRendererVTKWidget->show();
+    ui->pclRendererVTKWidget->update();
 }
+
+/*
 void VisionsOfJohanna::updateDeviceList() {
     std::vector<string> deviceNames = manager.getConnectedDeviceIds();
     for (const string &currentDevice: deviceNames) {
@@ -194,7 +193,7 @@ void VisionsOfJohanna::updateDeviceList() {
         ui->cameraListWidget->addItem(new QListWidgetItem(itemName));
     }
 }
-
+*/
 void VisionsOfJohanna::updateSelectedDevice(QListWidgetItem *item) {
     this->selectedDevice = item;
 }
@@ -305,7 +304,7 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getSegementedPc(pcl::Po
     return colored_cloud;
 }
 
-
+/*
 void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4d transform) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =
             manager.getPointCloudFromCamera(deviceSerial);
@@ -324,7 +323,7 @@ void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4
     ui->pclRendererVTKWidget->update();
 
 }
-
+ */
 
 void VisionsOfJohanna::repaintPointCloud() {
     if (!isCalibrationEnabled)

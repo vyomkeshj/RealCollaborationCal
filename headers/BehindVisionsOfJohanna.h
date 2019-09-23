@@ -5,7 +5,6 @@
 #ifndef REALCOLLABORATIONCAL_BEHINDVISIONSOFJOHANNA_H
 #define REALCOLLABORATIONCAL_BEHINDVISIONSOFJOHANNA_H
 
-
 #include "RealsenseManager.h"
 #include "visionsofjohanna.hpp"
 
@@ -19,7 +18,9 @@ class BehindVisionsOfJohanna : public QObject {
 Q_OBJECT
 
 public:
-    explicit BehindVisionsOfJohanna(QObject *parent = 0) :QObject(parent) {}
+    explicit BehindVisionsOfJohanna(QObject *parent = 0) :QObject(parent), manager(1.5f) {
+        qRegisterMetaType<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>("pcl::PointCloud<pcl::PointXYZRGB>::Ptr");
+}
     void setParent(VisionsOfJohanna *johannaHerself);
 
 public Q_SLOTS:
@@ -32,7 +33,7 @@ public Q_SLOTS:
 
 private:
     VisionsOfJohanna* johanna;
-    RealsenseManager* manager;
+    RealsenseManager manager;
     bool isStreaming = false;
 
 };

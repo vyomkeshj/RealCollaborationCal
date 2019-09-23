@@ -9,12 +9,12 @@
 #include <librealsense2/hpp/rs_pipeline.hpp>
 #include <mutex>
 #include <map>
+#include <iostream>
 
 /*
  * @Class Realsense Viewer is the base layer to communicate with the realsense cameras
  *  it allows basic features like enabling multiple cameras, keep their list, polling of frames and retrieval of camera data.
  * **/
-using namespace std;
 const std::string platform_camera_name = "Platform Camera";
 class RealsenseDeviceProvider {
 
@@ -106,7 +106,7 @@ public:
             for (auto &&view : _devices) {
                 // Ask each pipeline if there are new frames available
                 rs2::frameset frameset;
-                if (view.second.pipe.poll_for_frames(&frameset)) {
+                if (view.second.pipe.try_wait_for_frames(&frameset)) {
                     view.second.current_frameset = frameset; //update view port with the new frameset
                 }
             }
