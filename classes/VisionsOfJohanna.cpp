@@ -42,8 +42,6 @@ VisionsOfJohanna::VisionsOfJohanna(QWidget *parent) :
 //    jointAnglesListener = new RobotJointAngles("192.168.1.101");  //FIXME: add real ip
   //  jointAnglesListener->initializeModbus();   //Uncomment to connect to the real robot
     addLineModelsToViewer();
-
-    //keepPointCloudsUpToDate();
     //updateFrameRobotModel();
     //updateDeviceList();
     setupSliders();
@@ -278,32 +276,6 @@ void VisionsOfJohanna::translationZSliderChanged(int sliderval) {
         //addOrUpdatepointcloud(serial, netTransform);
     }
 }
-
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr VisionsOfJohanna::getSegementedPc(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcIn) {
-    pcl::search::Search<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
-    pcl::IndicesPtr indices(new std::vector<int>);
-    pcl::PassThrough<pcl::PointXYZRGB> pass;
-    pass.setInputCloud(pcIn);
-    pass.setFilterFieldName("z");
-    pass.setFilterLimits(0.0, 0.6);
-    pass.filter(*indices);
-
-    pcl::RegionGrowingRGB<pcl::PointXYZRGB> reg;
-    reg.setInputCloud(pcIn);
-    reg.setIndices(indices);
-    reg.setSearchMethod(tree);
-    reg.setDistanceThreshold(0.08);
-    reg.setPointColorThreshold(3);
-    reg.setRegionColorThreshold(5);
-    reg.setMinClusterSize(10000);
-
-    std::vector<pcl::PointIndices> clusters;
-    reg.extract(clusters);
-
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr colored_cloud = reg.getColoredCloud();
-    return colored_cloud;
-}
-
 /*
 void VisionsOfJohanna::addOrUpdatepointcloud(string deviceSerial, Eigen::Matrix4d transform) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr currentPc =

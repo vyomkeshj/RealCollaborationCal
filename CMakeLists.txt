@@ -16,23 +16,26 @@ set(CMAKE_CXX_FLAGS "-lncurses")
 set(SOURCES headers/modbus.h headers/RobotJointAngles.h classes/RobotJointAngles.cpp
         headers/modbus_exception.h classes/modbus.cpp headers/RealsenseManager.h
         headers/RealsensePoseEstimation.h
-        headers/PhoXiConversions.h
-        headers/PhoXiException.h
-        headers/PhoXiDeviceInformation.h
-        headers/PhoXiInterface.h
-        headers/Types.h
+#        headers/PhoXiConversions.h
+#        headers/PhoXiException.h
+#        headers/PhoXiDeviceInformation.h
+#        headers/PhoXiInterface.h
+#        headers/Types.h
         )
 
 
 
 
-add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
+
+add_executable(RealCollaborationCal
+         UiMain.cpp classes/VisionsOfJohanna.cpp
         classes/RobotJointAngles.cpp classes/modbus.cpp
         headers/CameraTagInBaseCoordinates.h headers/visionsofjohanna.hpp
         headers/RealsenseManager.h headers/RealsenseDeviceProvider.h
         headers/EigenFileExtension.h
         ur3-livemodel/Artifact.cpp
 
+        headers/async_buf.h
         headers/PhoXiConversions.h
         headers/PhoXiException.h
         headers/PhoXiDeviceInformation.h
@@ -45,16 +48,13 @@ add_executable(RealCollaborationCal UiMain.cpp classes/VisionsOfJohanna.cpp
         ur3-livemodel/headers/CollisionArtifact.h classes/PhoXiInterface.cpp
         headers/BehindVisionsOfJohanna.h classes/BehindVisionsOfJohanna.cpp )
 
-#[[
 
+#[[
 add_executable(RealCollaborationCal main.cpp
         classes/RobotJointAngles.cpp classes/modbus.cpp
-        classes/CameraTagInBaseCoordinates.cpp
-        headers/CameraTagInBaseCoordinates.h
-        headers/RealsenseManager.h headers/RealsenseDeviceProvider.h headers/EigenFileExtension.h)
+        headers/RealsenseManager.h headers/RealsenseDeviceProvider.h headers/EigenFileExtension.h classes/RosPublisher.cpp)
 
 ]]
-
 find_package(PhoXi REQUIRED CONFIG PATHS "$ENV{PHOXI_CONTROL_PATH}")
 find_package(VTK 8.1 REQUIRED)
 
@@ -115,3 +115,14 @@ target_link_libraries(RealCollaborationCal ${VTK_LIBRARIES})
 target_link_libraries(RealCollaborationCal Qt5::Widgets Qt5::Core)
 
 
+#[[
+find_package(catkin REQUIRED COMPONENTS
+        roscpp
+        rosconsole
+        std_msgs
+        geometry_msgs
+        message_generation
+        )
+include_directories(${catkin_INCLUDE_DIRS})
+
+target_link_libraries(RealCollaborationCal ${catkin_LIBRARIES})]]

@@ -32,9 +32,23 @@ public Q_SLOTS:
 
 
 private:
+    struct frameData {
+        cv::Mat depthFrame;
+        std::string timestamp;
+        float centralDistance;
+    };
+
+    std::vector<frameData> persistance;
+    bool persist = false;
+
+
     VisionsOfJohanna* johanna;
     RealsenseManager manager;
     bool isStreaming = false;
+    double computeFrameCentralDistance(rs2::depth_frame &depthFrame);
+    bool isFrameNormal(cv::Mat &depthFrame);
+    void persistMatrix(frameData data, int count);
+    int burstStore = 40;
 
 };
 

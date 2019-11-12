@@ -134,6 +134,7 @@ public:
     }
 
         RealsenseDeviceProvider::view_port getCameraStream(const string &cameraSerial) {
+        //std::cout<<"serial = "<<cameraSerial<<std::endl;
         return provider.getEnabledDevices().at(cameraSerial);
     }
 

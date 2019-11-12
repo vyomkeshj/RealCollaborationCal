@@ -58,7 +58,7 @@ public:
         //c.enable_all_streams();
 
         c.enable_device(serial_number);
-
+        std::cout<<serial_number<<std::endl;
         // Start the pipeline with the configuration
         try {
             rs2::pipeline_profile profile = p.start(c);     //start pipe p with camera configutation c

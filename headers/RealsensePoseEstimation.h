@@ -94,7 +94,7 @@ public:
                 aruco::drawDetectedMarkers(imageCopy, rejectedMarkers, noArray(), Scalar(100, 0, 255));
 
             for (auto& currentMarker: markerCorners) {
-                calculateArucoPose(0.09, currentMarker, rvec, tvec, depth_information);
+                calculateArucoPose(0.04, currentMarker, rvec, tvec, depth_information);
             }
 
             aruco::drawAxis(imageCopy, camMatrix, distCoeffs, rvec, tvec, 0.1);
@@ -114,10 +114,10 @@ public:
         int ptr = 3;
         cout<<dpInfo.get_distance(markerCorners[ptr].x, markerCorners[ptr].y)<<endl;
         vector<cv::Point3f> objecPoints;
-        objecPoints.push_back(Point3f(0.0f, 0.0f, 0));
-        objecPoints.push_back(Point3f(0.0f, side, 0));
-        objecPoints.push_back(Point3f(side, side, 0));
-        objecPoints.push_back(Point3f(side, 0.0f, 0));
+        objecPoints.push_back(Point3f(-side/2.0, side/2.0, 0));
+        objecPoints.push_back(Point3f(side/2.0, side/2.0, 0));
+        objecPoints.push_back(Point3f(side/2.0, -side/2.0, 0));
+        objecPoints.push_back(Point3f(-side/2.0, -side/2.0, 0));
 
         // Calculate Rotation and Translation
         bool result = cv::solvePnP(objecPoints, markerCorners, camMatrix, distCoeffs, rvec, tvec);
@@ -126,7 +126,7 @@ public:
 private:
     String cameraParamsPath;
     RealsenseManager realsenseManager;
-    int dictionaryId = 0;
+    int dictionaryId = 8;
     bool showRejected = true;
     int waitTime = 100;
     Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();

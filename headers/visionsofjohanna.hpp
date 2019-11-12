@@ -59,8 +59,8 @@ public Q_SLOTS:
     void updateSelectedDevice(QListWidgetItem *item);
     void repaintPointCloud();
     void updateFrameRobotModel();
+    void keepPointCloudsUpToDate(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcloud);
 
-    void keepPointCloudsUpToDate();
 
 private:
     struct afterTransformer{
@@ -107,7 +107,6 @@ private:
     RobotJointAngles *jointAnglesListener;
     bool isModelVisible = true;
     bool arePointCloudsColorful = false;
-    RealsenseManager manager;
 public:
     bool isArePointCloudsColorful() const;
 
